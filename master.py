@@ -15,13 +15,10 @@ from Priority_Queue import PriorityQueue
 #      })
 # ]
 jobs_pq = PriorityQueue()   #format: (prority, job)
-MAP_PRIORITY = 1
-REDUCE_PRIORITY = 2
-lock = threading.Lock()
+pq_lock = threading.Lock()
 
-def update_pq():
+def send_to_worker(task):
     pass
-
 
 def listen_to_requests():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -51,7 +48,7 @@ def listen_to_requests():
                 p.append(r)
                 d[x['job_id']] = p
                 jobs_pq.insert(d)
-            print(jobs_pq)
+            jobs_pq.display()
         except KeyboardInterrupt:
             break
 
@@ -73,19 +70,24 @@ def handle_roundrobin(workers):
 
 
 
-def handle_random(workers):
-    while(len(jobs_pq)):
-        task=jobs_pq.getTask()
-        worker_found=False
-        choose=[1,2,3]
-        while(not worker_found):
-            worker_id=random.choice(choose)
-            if(workers[worker_id-1]["free_slots"]):
-                worker_found=True
-                workers[worker_id-1]["free_slots"]-=1
-                #task -> workers[id-1]
-                #w[free_slots]++ after job is completed
-                break
+def handle_random(workers, worker_ids):
+
+    with pq_lock:
+        while(not jobs_pq.isEmpty()):
+            task=jobs_pq.getTask()
+            worker_found=False
+            while(not worker_found):
+                worker_id=random.choice(worker_ids)
+                if(workers[worker_id]["free_slots"]):
+                    worker_found=True
+                    workers[worker_id]["free_slots"]-=1
+                    print(task)
+                    print("Task %s assigned to worker %d"%(task[0],worker_id))
+                    #####################
+                    # Send task to worker
+                    send_to_worker(task)
+                    #####################
+                    break
 
 
 
@@ -139,38 +141,42 @@ if __name__ == '__main__':
 
     f = open(path, 'r')
     data = json.load(f)
-
+    
     print("Connect with Workers..............")
     sockets = {}
+    workers = {}
+    worker_ids = []
     for worker in data["workers"]:
         print(worker)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect(('localhost', worker["port"]))
-        sockets[worker["worker_id"]] = s
+        # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # s.connect(('localhost', worker["port"]))
+        # sockets[worker["worker_id"]] = s
 
-        msg = "Hello from master"
-        sockets[worker["worker_id"]].send(msg.encode())
+        workers[worker["worker_id"]] = {
+            "slots": worker["slots"],
+            "port": worker["port"],
+            "free_slots": worker["slots"]
+        }
+        worker_ids.append(worker["worker_id"])
+        # msg = "Hello from master"
+        # sockets[worker["worker_id"]].send(msg.encode())
     
     print("Connection with Workers successful!!\n")
-
-    workers=[x for x in data["workers"]] #list of dictionaries, each dictionary contains the worker details.
-    for i in workers:
-        i["free_slots"]=i["slots"]
-        #print(i)
-
+    
     
     requests_listener = threading.Thread(target=listen_to_requests)
-    worker_listener = threading.Thread(target=listen_to_workers)
+    # worker_listener = threading.Thread(target=listen_to_workers)
     requests_listener.start()
-    worker_listener.start()
+    # worker_listener.start()
 
     print("Continue processing on the master thread to assign jobs")
+    time.sleep(5)
     if algo == "RR":
         handle_roundrobin(workers)
     elif algo == "RANDOM":
-        handle_random(workers)
+        handle_random(workers, worker_ids)
     elif algo == "LL":
         handle_LL(workers)
 
-    worker_listener.join()
+    # worker_listener.join()
     requests_listener.join()

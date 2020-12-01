@@ -12,5 +12,8 @@ class PriorityQueue:
     
     def isEmpty(self):
         return False
+    
+    def display(self):
+        pass
 
 
