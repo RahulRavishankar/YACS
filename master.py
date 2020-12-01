@@ -6,7 +6,20 @@ import random
 import numpy
 import threading
 
-tasks_queue = []
+# [(1, {'0': 
+#           [[('0_M0', 4)], [('0_R0', 1)]]
+#      }), 
+#  (1, {'1': 
+#           [[('1_M0', 1)], [('1_R0', 1), ('1_R1', 1)]]
+#      })
+# ]
+jobs_pq = []   #format: (prority, job)
+MAP_PRIORITY = 1
+REDUCE_PRIORITY = 2
+lock = threading.Lock()
+
+def update_pq():
+    pass
 
 
 def listen_to_requests():
@@ -16,7 +29,7 @@ def listen_to_requests():
 
     while(1):
         try:
-            host, port = s.accept()
+            host, _ = s.accept()
 
             with host:
                 data = host.recv(1024)
@@ -36,8 +49,8 @@ def listen_to_requests():
 
                 p.append(r)
                 d[x['job_id']] = p
-                tasks_queue.append(d)
-            print(tasks_queue)
+                jobs_pq.append((MAP_PRIORITY,d))
+            print(jobs_pq)
         except KeyboardInterrupt:
             break
 
