@@ -10,12 +10,12 @@ tasks_queue = []
 
 
 def listen_to_requests():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('localhost', 5000))
-        s.listen(1)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('localhost', 5000))
+    s.listen(1)
 
-        while True:  # change
-
+    while(1):
+        try:
             host, port = s.accept()
 
             with host:
@@ -38,7 +38,8 @@ def listen_to_requests():
                 d[x['job_id']] = p
                 tasks_queue.append(d)
             print(tasks_queue)
-
+        except KeyboardInterrupt:
+            break
 
 def handle_roundrobin():
     pass
@@ -53,14 +54,19 @@ def handle_LL():
 
 def listen_to_workers():
     print("Listening to workers")
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('localhost', 5001))
-        s.listen(1)
-        
-        # host, port = s.accept()    
-        # with host:
-        #     data = host.recv(1024)
-        #     print(data.decode())
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('localhost', 5001))
+    s.listen(1)
+    
+    while(1):
+        try:
+            host, _ = s.accept()    
+            with host:
+                data = host.recv(1024)
+                print(data.decode())
+        except KeyboardInterrupt:
+            break
+
 
 
 
