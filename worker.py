@@ -45,14 +45,17 @@ def execute_tasks():
               if(int(x) == 0):
                 exec_pool.remove(i)
                 send_update(i[0])
-        #waiting       
+                time.sleep(1)
+        else: 
+            break       
 
 
 def send_update(data):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('localhost', 5001))
-    data = data + "," + str(worker_id)
-    s.send(data.encode())
+    with s:
+       s.connect(('localhost', 5001))
+       data = data + "," + str(worker_id)
+       s.send(data.encode())
 
 
 if __name__ == '__main__':

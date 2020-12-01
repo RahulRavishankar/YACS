@@ -20,8 +20,9 @@ pq_lock = threading.Lock()
 
 def send_tasks(data, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('localhost', port))
-    s.send(data.encode())
+    with s: 
+       s.connect(('localhost', port))
+       s.send(data.encode())
 
 
 def listen_to_requests():
@@ -150,7 +151,11 @@ def listen_to_workers():
             host, _ = s.accept()
             with host:
                 data = host.recv(1024)
-                print(data.decode())
+                #print(data.decode())
+                msg = data.decode()
+                print(msg)
+                k = msg.split(',')
+                workers[k[1]]["free_slots"] += 1
         except KeyboardInterrupt:
             break
 
@@ -200,6 +205,8 @@ if __name__ == '__main__':
     
     print("Connection with Workers successful!!\n")
     
+    data = "task1,5"
+    send_tasks(data,4000)
 
     requests_listener = threading.Thread(target=listen_to_requests)
     # worker_listener = threading.Thread(target=listen_to_workers)
