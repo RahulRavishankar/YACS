@@ -5,6 +5,8 @@ import sys
 import random
 import numpy
 
+tasks_queue = []
+
 
 def listen_to_requests():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -12,16 +14,29 @@ def listen_to_requests():
         s.listen(1)
 
         while True:  # change
-           
+
             host, port = s.accept()
-            
+
             with host:
                 data = host.recv(1024)
-                
+
                 if not data:
                     break
-                print(data.decode())  
-                
+                x = json.loads(data)
+                d = dict()
+                p = []
+                l = []
+                for i in x['map_tasks']:
+                    l.append((i['task_id'], i['duration']))
+                p.append(l)
+                r = []
+                for i in x['reduce_tasks']:
+                    r.append((i['task_id'], i['duration']))
+
+                p.append(r)
+                d[x['job_id']] = p
+                tasks_queue.append(d)
+            print(tasks_queue)
 
 
 def handle_roundrobin():
