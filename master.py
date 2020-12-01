@@ -105,13 +105,13 @@ def handle_random(workers):
                 break
 
 
-def handle_LL():
+'''def handle_LL():
     while(jobs):
         task = getTask(jobs)
         worker_found = False
         max_slots = 0
         max_id = 0
-        while(not worker_found):  # add wait clause if no slots are free?
+        while(not worker_found):  # add wait clause if no slots are free?'''
 
 
 def handle_LL(workers):
@@ -164,14 +164,14 @@ if __name__ == '__main__':
 
     print("Connect with Workers..............")
     sockets = {}
-    for worker in data["workers"]:
+    '''for worker in data["workers"]:
         print(worker)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect(('localhost', worker["port"]))
         sockets[worker["worker_id"]] = s
 
         msg = "Hello from master"
-        sockets[worker["worker_id"]].send(msg.encode())
+        sockets[worker["worker_id"]].send(msg.encode())'''
 
     print("Connection with Workers successful!!\n")
 
