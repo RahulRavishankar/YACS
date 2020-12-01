@@ -63,6 +63,7 @@ if __name__ == '__main__':
 
     f = open(path, 'r')
     data = json.load(f)
+
     print("Connect with Workers..............")
     sockets = {}
     for worker in data["workers"]:
@@ -73,8 +74,14 @@ if __name__ == '__main__':
 
         msg = "Hello from master"
         sockets[worker["worker_id"]].send(msg.encode())
-
+    
     print("Connection with Workers successful!!\n")
+
+    workers=[x for x in data["workers"]] #list of dictionaries, each dictionary contains the worker details.
+    for i in workers:
+        i["free_slots"]=i["slots"]
+        #print(i)
+
     
     requests_listener = threading.Thread(target=listen_to_requests)
     worker_listener = threading.Thread(target=listen_to_workers)
