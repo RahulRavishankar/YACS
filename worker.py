@@ -4,14 +4,38 @@ import time
 import sys
 import random
 import numpy
+import threading
 
 args = sys.argv
-port = args[1]
-worker_id = args[2]
+port = int(args[1])
+worker_id = int(args[2])
 
+def listen_to_master():
+    print("Listening to master for jobs")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('localhost', port))
+        s.listen(1)
+        
+        host, _ = s.accept()
+        with host:
+            data = host.recv(1024)
+            print(data.decode())
+
+def execute_tasks():
+    print("Executing the tasks assigned")
 
 
 if __name__ == '__main__':
-	if(len(sys.argv)!=2):
-		print("Usage: python worker.py <port> <worker_id>")
-		exit()
+    if(len(sys.argv)!=3):
+        print("Usage: python worker.py <port> <worker_id>")
+        exit()
+
+    master_listener = threading.Thread(target=listen_to_master)
+    task_executor = threading.Thread(target=execute_tasks)
+    task_executor.start()
+    master_listener.start()
+
+    print("Continue to execute in worker %s"%(worker_id))
+    master_listener.join()
+    task_executor.join()
+
