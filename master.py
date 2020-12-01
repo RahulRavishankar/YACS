@@ -7,22 +7,17 @@ import numpy
 import threading
 from Priority_Queue import PriorityQueue
 
-# [(1, {'0': 
-#           [[('0_M0', 4)], [('0_R0', 1)]]
-#      }), 
-#  (1, {'1': 
-#           [[('1_M0', 1)], [('1_R0', 1), ('1_R1', 1)]]
-#      })
-# ]
+
 jobs_pq = PriorityQueue()   #format: (prority, job)
 pq_lock = threading.Lock()
+workers_lock = {}
 sockets = {}
 
 def send_tasks(data, port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    with s: 
-       s.connect(('localhost', port))
-       s.send(data.encode())
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+    s.connect(('localhost', port))
+    s.send(data.encode())
+    s.close()
 
 
 def listen_to_requests():
@@ -48,10 +43,13 @@ def listen_to_requests():
 
                 p.append(r)
                 d[x['job_id']] = p
-                with pq_lock:
-                    jobs_pq.insert(d)
-            # with pq_lock:
-            #     jobs_pq.display()
+
+                pq_lock.acquire()    
+                jobs_pq.insert(d)
+                pq_lock.release()
+            pq_lock.acquire()
+            jobs_pq.display()
+            pq_lock.release()
         except KeyboardInterrupt:
             break
 
@@ -59,58 +57,96 @@ def listen_to_requests():
 def handle_roundrobin(workers):
     #jobs is structured like: [{'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]}, {'1': [[('1_M0', 1)], [('1_R0', 2), ('1_R1', 4)]]}]
     while(not jobs_pq.isEmpty()):
-        task = jobs_pq.getTask()
+        pq_lock.acquire()
+        task=jobs_pq.getTask()
+        if(task==None):
+            continue
+        pq_lock.release()
         worker_found=False
         while(not worker_found):
-            for w in workers:
-                if(w["free_slots"]):
+            for worker_id in workers:
+                workers_lock[worker_id].acquire()
+                freeSlotisAvailable = workers[worker_id]["free_slots"]
+                workers_lock[worker_id].release()            
+                if(freeSlotisAvailable):
                     worker_found = True
-                    worker_id = w["worker_id"]  # worker_id
-                    w["free_slots"] -= 1
-                    # task -> workers[id-1]
-                    # w[free_slots]++ after job is completed
-                    break
+                    workers_lock[worker_id].acquire()
+                    workers[worker_id]["free_slots"] -= 1
+                    workers_lock[worker_id].release()
 
-
-def handle_random(workers, worker_ids):
-    print("In random")
-    with pq_lock:
-        # while(1):
-        while(not jobs_pq.isEmpty()):
-            task=jobs_pq.getTask()
-            worker_found=False
-            while(not worker_found):
-                worker_id=random.choice(worker_ids)
-                if(workers[worker_id]["free_slots"]):
-                    worker_found=True
-                    workers[worker_id]["free_slots"]-=1
-                    # print(task)
                     print("Task %s assigned to worker %d"%(str(task),worker_id))
                     #####################
                     # Send task to worker
-                    sockets[worker_id].send((str(task[0])+","+str(task[1])).encode())
-                    # send_tasks(str(task[0])+","+str(task[1]),workers[worker_id]["port"])
+                    send_tasks(str(task[0])+","+str(task[1]),workers[worker_id]["port"])
                     #####################
                     break
-            # print("No more jobs left")
+                
+
+def handle_random(workers, worker_ids):
+    # print("In random")
+    # send_tasks("task1,5",4000)
+    # send_tasks("task2,5",4002)
+    # send_tasks("task3,5",4000)
+    # send_tasks("task4,5",4001)
+    # send_tasks("task5,5",4002)
+
+    while(1):
+        while(not jobs_pq.isEmpty()):
+            pq_lock.acquire()
+            task=jobs_pq.getTask()
+            pq_lock.release()
+            worker_found=False
+            while(not worker_found):
+                worker_id=random.choice(worker_ids)
+                workers_lock[worker_id].acquire()
+                freeSlotisAvailable = workers[worker_id]["free_slots"]
+                workers_lock[worker_id].release()            
+                if(freeSlotisAvailable):
+                    worker_found=True
+                    workers_lock[worker_id].acquire()
+                    workers[worker_id]["free_slots"]-=1
+                    workers_lock[worker_id].release()
+                    
+                    print("Task %s assigned to worker %d"%(str(task),worker_id))
+                    #####################
+                    # Send task to worker
+                    send_tasks(str(task[0])+","+str(task[1]),workers[worker_id]["port"])
+                    #####################
+                    # break
+            # print("All workers are busy")
+        # print("No more jobs left")
+
+    print("Exitting random")
 
 
 def handle_LL(workers):
     while(not jobs_pq.isEmpty()):
+        pq_lock.acquire()
         task=jobs_pq.getTask()
+        pq_lock.release()
         worker_found=False
         max_slots=0
         max_id=0
-        while(not worker_found):        #add wait clause if no slots are free?
-            for w in workers:
-                if(w["free_slots"] > max_slots):
-                    max_slots = workers[w]["free_slots"]
-                    max_id = w["worker_id"]
-
-            if(workers[max_id-1]["free_slots"]):
+        while(not worker_found):
+            for worker_id in workers:
+                workers_lock[worker_id].acquire()
+                if(workers[worker_id]["free_slots"] > max_slots):
+                    max_slots = workers[worker_id]["free_slots"]
+                    max_id = worker_id
+                workers_lock[worker_id].release()
+            
+            if(max_slots):
                 worker_found = True
-                workers[max_id-1]["free_slots"] -= 1
-                # task -> workers[max_id-1]
+                print("Which: ",max_slots, max_id)
+
+                workers_lock[max_id].acquire()
+                workers[max_id]["free_slots"] -= 1
+                workers_lock[max_id].release()
+                print("Task %s assigned to worker %d"%(str(task),max_id))
+                #####################
+                # Send task to worker
+                send_tasks(str(task[0])+","+str(task[1]),workers[max_id]["port"])
+                #####################
 
 
 def listen_to_workers():
@@ -123,15 +159,23 @@ def listen_to_workers():
         try:
             host, _ = s.accept()
             with host:
-                data = host.recv(1024)
-                #print(data.decode())
-                msg = data.decode()
-                print(msg)
-                k = msg.split(',')
-                workers[k[1]]["free_slots"] += 1
+                msg = host.recv(1024)
+                msg = msg.decode()
+                task_id,worker_id = msg.split(',')
+                worker_id = int(worker_id)
+                print("Message %s received from worker %d "%(task_id,worker_id))
+                workers_lock[worker_id].acquire()
+                workers[worker_id]["free_slots"] += 1
+                workers_lock[worker_id].release()
+
+                pq_lock.acquire()
+                jobs_pq.popTask(task_id)
+                pq_lock.release()
         except KeyboardInterrupt:
             break
-
+    
+    print("NOT LISTENING TO UPDATES FROM WORKERS ANYMORE")
+    s.close()
 
 if __name__ == '__main__':
     if(len(sys.argv) != 3):
@@ -153,23 +197,15 @@ if __name__ == '__main__':
     worker_ids = []
     for worker in data["workers"]:
         print(worker)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect(('localhost', worker["port"]))
-        sockets[worker["worker_id"]] = s
-
         workers[worker["worker_id"]] = {
             "slots": worker["slots"],
             "port": worker["port"],
             "free_slots": worker["slots"]
         }
         worker_ids.append(worker["worker_id"])
-        # msg = "Hello from master"
-        # sockets[worker["worker_id"]].send(msg.encode())
+        workers_lock[worker["worker_id"]]=threading.Lock()
     
     print("Connection with Workers successful!!\n")
-    
-    data = "task1,5"
-    send_tasks(data,4000)
 
     requests_listener = threading.Thread(target=listen_to_requests)
     worker_listener = threading.Thread(target=listen_to_workers)

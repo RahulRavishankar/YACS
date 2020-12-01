@@ -24,6 +24,9 @@ class PriorityQueue:
 
         return task
     
+    def popTask(self, taskId):
+        pass
+
     def isEmpty(self):
         return (len(self.queue)==0)
 
