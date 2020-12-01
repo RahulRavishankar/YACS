@@ -33,36 +33,39 @@ def listen_to_master():
                 break
 
 
+def execute_tasks():
+    if(len(exec_pool) > 0):
+        threading.Timer(1.0,execute_tasks).start()
+        for i in exec_pool:
+            print(i[1]) 
+            x = int(i[1])
+            x -= 1
+            i[1] = str(x)
+            if(int(x) == 0):
+                exec_pool.remove(i)
+                send_update(i[0])
+            time.sleep(1)
+    else: 
+        break    
+
 # def execute_tasks():
 #     print("Executing the tasks assigned")
 #     while(1):
-#         if(len(exec_pool) > 0):
-#            threading.Timer(1.0,execute_tasks).start()
-#            for i in exec_pool:
-#               print(i[1]) 
-#               x = int(i[1])
-#               x -= 1
-#               i[1] = str(x)
-#               if(int(x) == 0):
-#                 exec_pool.remove(i)
-#                 send_update(i[0])
-#         #waiting       
-def execute_tasks():
-    print("Executing the tasks assigned")
-    while(1):
-        while(len(exec_pool) > 0):
-            for i in exec_pool:
-                i[1]-=1
-                if(int(i[1]) == 0):
-                    exec_pool.remove(i)
-                    send_update(i[0])
-                time.sleep(1)      
+#         while(len(exec_pool) > 0):
+#             for i in exec_pool:
+#                 i[1]-=1
+#                 if(int(i[1]) == 0):
+#                     exec_pool.remove(i)
+#                     send_update(i[0])
+#                 time.sleep(1)      
+
 
 def send_update(data):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('localhost', 5001))
-    data = data + "," + str(worker_id)
-    s.send(data.encode())
+    with s:
+       s.connect(('localhost', 5001))
+       data = data + "," + str(worker_id)
+       s.send(data.encode())
 
 
 if __name__ == '__main__':
