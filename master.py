@@ -47,9 +47,9 @@ def listen_to_requests():
                 pq_lock.acquire()    
                 jobs_pq.insert(d)
                 pq_lock.release()
-            pq_lock.acquire()
-            jobs_pq.display()
-            pq_lock.release()
+            # pq_lock.acquire()
+            # jobs_pq.display()
+            # pq_lock.release()
         except KeyboardInterrupt:
             break
 
@@ -59,9 +59,9 @@ def handle_roundrobin(workers):
     while(not jobs_pq.isEmpty()):
         pq_lock.acquire()
         task=jobs_pq.getTask()
+        pq_lock.release()
         if(task==None):
             continue
-        pq_lock.release()
         worker_found=False
         while(not worker_found):
             for worker_id in workers:

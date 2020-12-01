@@ -87,10 +87,11 @@ class PriorityQueue:
 
         for i in range(len(self.queue)):
             if(self.queue[i][1]["job_id"]==job_Id):
-                for j in  range(len(self.queue[i][1]["sent_tasks"])):
-                    print(self.queue[i][1]["sent_tasks"][j])
+                for j in range(len(self.queue[i][1]["sent_tasks"])):
+                    # print("Bhosdk",self.queue[i][1]["sent_tasks"], "---->",j)
                     if(self.queue[i][1]["sent_tasks"][j][0]==taskId):
                         del self.queue[i][1]["sent_tasks"][j]
+                        return
 
     def isEmpty(self):
         return (len(self.queue)==0)
@@ -101,28 +102,28 @@ class PriorityQueue:
             print(job)
 
 
-p = PriorityQueue()
-p.insert({'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]})
-p.insert({'1': [[('1_M0', 1),("1_M1",4),("1_M2",3)], [('1_R0', 2), ('1_R1', 4)]]})
-print("Yoooooo",p.getTask())
-print(p.popTask("0_M0"))
-print("Yoooooo",p.getTask())
-print("Yoooooo",p.getTask())
-print("Yoooooo",p.getTask())
-print("Yoooooo",p.getTask())
-print("Yoooooo",p.getTask())
-print("Yoooooo",p.getTask())
-print(p.popTask("1_M0"))
-print(p.popTask("1_M1"))
-print("Yoooooo",p.getTask())
-print(p.popTask("1_M2"))
-print("Yoooooo",p.getTask())
-print(p.popTask("1_R1"))
-print(p.popTask("1_R3"))
-print("Yoooooo",p.getTask())
-print(p.popTask("1_M2"))
-print("Yoooooo",p.getTask())
-print(p.popTask("1_R1"))
-print(p.popTask("1_R3"))
+# p = PriorityQueue()
+# p.insert({'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]})
+# p.insert({'1': [[('1_M0', 1),("1_M1",4),("1_M2",3)], [('1_R0', 2), ('1_R1', 4)]]})
+# print("Yoooooo",p.getTask())
+# print(p.popTask("0_M0"))
+# print("Yoooooo",p.getTask())
+# print("Yoooooo",p.getTask())
+# print("Yoooooo",p.getTask())
+# print("Yoooooo",p.getTask())
+# print("Yoooooo",p.getTask())
+# print("Yoooooo",p.getTask())
+# print(p.popTask("1_M0"))
+# print(p.popTask("1_M1"))
+# print("Yoooooo",p.getTask())
+# print(p.popTask("1_M2"))
+# print("Yoooooo",p.getTask())
+# print(p.popTask("1_R1"))
+# print(p.popTask("1_R3"))
+# print("Yoooooo",p.getTask())
+# print(p.popTask("1_M2"))
+# print("Yoooooo",p.getTask())
+# print(p.popTask("1_R1"))
+# print(p.popTask("1_R3"))
 
 
