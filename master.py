@@ -12,14 +12,16 @@ def listen_to_requests():
         s.listen(1)
 
         while True:  # change
-            c, addr = s.accept()
-
-            with c:
-                data = c.recv(1024)
+           
+            host, port = s.accept()
+            
+            with host:
+                data = host.recv(1024)
+                
                 if not data:
                     break
-                print(data.decode())
-                # q.append(data.decode())
+                print(data.decode())  
+                
 
 
 def handle_roundrobin():
