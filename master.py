@@ -95,6 +95,8 @@ def handle_random(workers, worker_ids):
             pq_lock.acquire()
             task=jobs_pq.getTask()
             pq_lock.release()
+            if(task==None):
+                continue
             worker_found=False
             while(not worker_found):
                 worker_id=random.choice(worker_ids)
@@ -124,6 +126,8 @@ def handle_LL(workers):
         pq_lock.acquire()
         task=jobs_pq.getTask()
         pq_lock.release()
+        if(task==None):
+            continue
         worker_found=False
         max_slots=0
         max_id=0
