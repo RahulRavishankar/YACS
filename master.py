@@ -5,8 +5,22 @@ import sys
 import random
 import numpy
 import threading
+from Priority_Queue import PriorityQueue
 
-tasks_queue = []
+# [(1, {'0': 
+#           [[('0_M0', 4)], [('0_R0', 1)]]
+#      }), 
+#  (1, {'1': 
+#           [[('1_M0', 1)], [('1_R0', 1), ('1_R1', 1)]]
+#      })
+# ]
+jobs_pq = PriorityQueue()   #format: (prority, job)
+MAP_PRIORITY = 1
+REDUCE_PRIORITY = 2
+lock = threading.Lock()
+
+def update_pq():
+    pass
 
 
 def send_tasks(data, port):
@@ -22,7 +36,7 @@ def listen_to_requests():
 
     while(1):
         try:
-            host, port = s.accept()
+            host, _ = s.accept()
 
             with host:
                 data = host.recv(1024)
@@ -42,8 +56,8 @@ def listen_to_requests():
 
                 p.append(r)
                 d[x['job_id']] = p
-                tasks_queue.append(d)
-            print(tasks_queue)
+                jobs_pq.insert(d)
+            print(jobs_pq)
         except KeyboardInterrupt:
             break
 
@@ -53,6 +67,11 @@ def handle_roundrobin(jobs, workers):
     while(jobs):
         task = getTask(jobs)
         worker_found = False
+def handle_roundrobin(workers):
+    #jobs is structured like: [{'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]}, {'1': [[('1_M0', 1)], [('1_R0', 2), ('1_R1', 4)]]}]
+    while(not jobs_pq.isEmpty()):
+        task = jobs_pq.getTask()
+        worker_found=False
         while(not worker_found):
             for w in workers:
                 if(w["free_slots"]):
@@ -69,6 +88,13 @@ def handle_random(jobs, workers):
         task = getTask(jobs)
         worker_found = False
         choose = [1, 2, 3]
+
+
+def handle_random(workers):
+    while(len(jobs_pq)):
+        task=jobs_pq.getTask()
+        worker_found=False
+        choose=[1,2,3]
         while(not worker_found):
             worker_id = random.choice(choose)
             if(workers[worker_id-1]["free_slots"]):
@@ -86,6 +112,15 @@ def handle_LL():
         max_slots = 0
         max_id = 0
         while(not worker_found):  # add wait clause if no slots are free?
+
+
+def handle_LL(workers):
+    while(not jobs_pq.isEmpty()):
+        task=jobs_pq.getTask()
+        worker_found=False
+        max_slots=0
+        max_id=0
+        while(not worker_found):        #add wait clause if no slots are free?
             for w in workers:
                 if(w["free_slots"] > max_slots):
                     max_slots = workers[w]["free_slots"]
@@ -95,7 +130,6 @@ def handle_LL():
                 worker_found = True
                 workers[max_id-1]["free_slots"] -= 1
                 # task -> workers[max_id-1]
-
 
 def listen_to_workers():
     print("Listening to workers")
@@ -159,10 +193,13 @@ if __name__ == '__main__':
     print("Continue processing on the master thread to assign jobs")
     '''if algo == "RR":
         handle_roundrobin()
+    if algo == "RR":
+        handle_roundrobin(workers)
     elif algo == "RANDOM":
-        handle_random()
+        handle_random(workers)
     elif algo == "LL":
-        handle_LL()'''
+        handle_LL()
+        handle_LL(workers)'''
 
     worker_listener.join()
     requests_listener.join()
