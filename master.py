@@ -6,7 +6,7 @@ import random
 import numpy
 
 
-def listen_to_requests(q):
+def listen_to_requests():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(('localhost', 5000))
         s.listen(1)
@@ -35,7 +35,6 @@ def handle_LL():
 
 
 if __name__ == '__main__':
-
     if(len(sys.argv) != 3):
         print("Usage: python master.py <path to config file> <name of algorithm: RR,LL,RANDOM>")
         exit()
@@ -48,12 +47,11 @@ if __name__ == '__main__':
         exit()
 
     f = open(path)
-    data = json.loads(f)
-    for i in data['workers']:
+    data = json.load(f)
+    for i in data["workers"]:
         print(i)
 
-    exec_queue = []
-    listen_to_requests(exec_queue)
+    listen_to_requests()
 
     if algo == "RR":
         handle_roundrobin()
