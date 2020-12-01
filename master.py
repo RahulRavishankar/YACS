@@ -15,12 +15,7 @@ from Priority_Queue import PriorityQueue
 #      })
 # ]
 jobs_pq = PriorityQueue()   #format: (prority, job)
-MAP_PRIORITY = 1
-REDUCE_PRIORITY = 2
-lock = threading.Lock()
-
-def update_pq():
-    pass
+pq_lock = threading.Lock()
 
 
 def send_tasks(data, port):
@@ -37,12 +32,8 @@ def listen_to_requests():
     while(1):
         try:
             host, _ = s.accept()
-
             with host:
                 data = host.recv(1024)
-
-                if not data:
-                    break
                 x = json.loads(data)
                 d = dict()
                 p = []
@@ -56,17 +47,14 @@ def listen_to_requests():
 
                 p.append(r)
                 d[x['job_id']] = p
-                jobs_pq.insert(d)
-            print(jobs_pq)
+                with pq_lock:
+                    jobs_pq.insert(d)
+            with pq_lock:
+                jobs_pq.display()
         except KeyboardInterrupt:
             break
 
 
-def handle_roundrobin(jobs, workers):
-    # jobs is structured like: [{'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]}, {'1': [[('1_M0', 1)], [('1_R0', 2), ('1_R1', 4)]]}]
-    while(jobs):
-        task = getTask(jobs)
-        worker_found = False
 def handle_roundrobin(workers):
     #jobs is structured like: [{'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]}, {'1': [[('1_M0', 1)], [('1_R0', 2), ('1_R1', 4)]]}]
     while(not jobs_pq.isEmpty()):
@@ -112,6 +100,26 @@ def handle_random(workers):
         max_slots = 0
         max_id = 0
         while(not worker_found):  # add wait clause if no slots are free?'''
+def handle_random(workers, worker_ids):
+
+    with pq_lock:
+        while(1):
+            while(not jobs_pq.isEmpty()):
+                task=jobs_pq.getTask()
+                worker_found=False
+                while(not worker_found):
+                    worker_id=random.choice(worker_ids)
+                    if(workers[worker_id]["free_slots"]):
+                        worker_found=True
+                        workers[worker_id]["free_slots"]-=1
+                        print(task)
+                        print("Task %s assigned to worker %d"%(task[0],worker_id))
+                        #####################
+                        # Send task to worker
+                        # send_tasks()
+                        #####################
+                        break
+            print("No more jobs left")
 
 
 def handle_LL(workers):
@@ -161,7 +169,7 @@ if __name__ == '__main__':
 
     f = open(path, 'r')
     data = json.load(f)
-
+    
     print("Connect with Workers..............")
     sockets = {}
     '''for worker in data["workers"]:
@@ -173,33 +181,39 @@ if __name__ == '__main__':
         msg = "Hello from master"
         sockets[worker["worker_id"]].send(msg.encode())'''
 
-    print("Connection with Workers successful!!\n")
-
-    # list of dictionaries, each dictionary contains the worker details.
-    workers = [x for x in data["workers"]]
-    for i in workers:
-        i["free_slots"] = i["slots"]
-        # print(i)
-
-    d = "task_01,5"
+    workers = {}
+    worker_ids = []
     for worker in data["workers"]:
-        send_tasks(d, worker["port"])
+        print(worker)
+        # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # s.connect(('localhost', worker["port"]))
+        # sockets[worker["worker_id"]] = s
+
+        workers[worker["worker_id"]] = {
+            "slots": worker["slots"],
+            "port": worker["port"],
+            "free_slots": worker["slots"]
+        }
+        worker_ids.append(worker["worker_id"])
+        # msg = "Hello from master"
+        # sockets[worker["worker_id"]].send(msg.encode())
+    
+    print("Connection with Workers successful!!\n")
+    
 
     requests_listener = threading.Thread(target=listen_to_requests)
-    worker_listener = threading.Thread(target=listen_to_workers)
+    # worker_listener = threading.Thread(target=listen_to_workers)
     requests_listener.start()
-    worker_listener.start()
+    # worker_listener.start()
 
     print("Continue processing on the master thread to assign jobs")
-    '''if algo == "RR":
-        handle_roundrobin()
+    time.sleep(5)
     if algo == "RR":
         handle_roundrobin(workers)
     elif algo == "RANDOM":
-        handle_random(workers)
+        handle_random(workers, worker_ids)
     elif algo == "LL":
-        handle_LL()
-        handle_LL(workers)'''
+        handle_LL(workers)
 
-    worker_listener.join()
+    # worker_listener.join()
     requests_listener.join()
