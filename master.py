@@ -7,7 +7,21 @@ import numpy
 
 
 
-
+def listen_to_requests(q):
+   with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+              s.bind(('localhost',5000))
+              s.listen(1)
+              
+              while True: #change
+                 c,addr = s.accept()
+                 
+                 with c:
+                     data = c.recv(1024)
+                     if not data:
+                        break
+                     print(data.decode())
+                     #q.append(data.decode())
+   
 
 
 
@@ -34,20 +48,17 @@ if __name__ == '__main__':
            print("INVALID ALGORITHM! ENTER RR,LL or RANDOM")
            exit()
 
+        
 
 
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-              s.bind(('localhost',5000))
-              s.listen(1)
-              
-              while True:
-                 c,addr = s.accept()
-                 
-                 with c:
-                     data = c.recv(1024)
-                     if not data:
-                        break
-                     print(data.decode())
+        f = open(path)
+        data = json.loads(f)
+        for i in data['workers']:
+           print(i)
+
+        exec_queue = []
+        listen_to_requests(exec_queue)   
+           
                  
                     
                   
