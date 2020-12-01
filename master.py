@@ -4,6 +4,7 @@ import time
 import sys
 import random
 import numpy
+import threading
 
 
 def listen_to_requests():
@@ -33,6 +34,11 @@ def handle_random():
 def handle_LL():
     pass
 
+def listen_to_workers():
+    print("Listening to workers")
+
+
+
 
 if __name__ == '__main__':
     if(len(sys.argv) != 3):
@@ -51,11 +57,18 @@ if __name__ == '__main__':
     for i in data["workers"]:
         print(i)
 
-    listen_to_requests()
-
+    
+    requests_listener = threading.Thread(target=listen_to_requests)
+    worker_listener = threading.Thread(target=listen_to_workers)
+    requests_listener.start()
+    worker_listener.start()
     if algo == "RR":
         handle_roundrobin()
     elif algo == "RANDOM":
         handle_random()
     elif algo == "LL":
         handle_LL()
+
+    print("Continue processing on the master thread")
+    worker_listener.join()
+    requests_listener.join()
