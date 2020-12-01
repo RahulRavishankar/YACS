@@ -50,8 +50,10 @@ if __name__ == '__main__':
 
     f = open(path)
     data = json.load(f)
-    for i in data["workers"]:
-        print(i)
+    workers=[x for x in data["workers"]] #list of dictionaries, each dictionary contains the worker details.
+    for i in workers:
+        i["free_slots"]=i["slots"]
+        #print(i)
 
     listen_to_requests()
 
