@@ -38,7 +38,14 @@ def handle_LL():
 
 def listen_to_workers():
     print("Listening to workers")
-
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('localhost', 5001))
+        s.listen(1)
+        
+        # host, port = s.accept()    
+        # with host:
+        #     data = host.recv(1024)
+        #     print(data.decode())
 
 
 
@@ -54,16 +61,27 @@ if __name__ == '__main__':
         print("INVALID ALGORITHM! ENTER RR,LL or RANDOM")
         exit()
 
-    f = open(path)
+    f = open(path, 'r')
     data = json.load(f)
-    for i in data["workers"]:
-        print(i)
+    print("Connect with Workers..............")
+    sockets = {}
+    for worker in data["workers"]:
+        print(worker)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(('localhost', worker["port"]))
+        sockets[worker["worker_id"]] = s
 
+        msg = "Hello from master"
+        sockets[worker["worker_id"]].send(msg.encode())
+
+    print("Connection with Workers successful!!\n")
     
     requests_listener = threading.Thread(target=listen_to_requests)
     worker_listener = threading.Thread(target=listen_to_workers)
     requests_listener.start()
     worker_listener.start()
+
+    print("Continue processing on the master thread to assign jobs")
     if algo == "RR":
         handle_roundrobin()
     elif algo == "RANDOM":
@@ -71,6 +89,5 @@ if __name__ == '__main__':
     elif algo == "LL":
         handle_LL()
 
-    print("Continue processing on the master thread")
     worker_listener.join()
     requests_listener.join()
