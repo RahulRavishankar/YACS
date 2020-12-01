@@ -17,8 +17,12 @@ from Priority_Queue import PriorityQueue
 jobs_pq = PriorityQueue()   #format: (prority, job)
 pq_lock = threading.Lock()
 
-def send_to_worker(task):
-    pass
+
+def send_tasks(data, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(('localhost', port))
+    s.send(data.encode())
+
 
 def listen_to_requests():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -28,12 +32,8 @@ def listen_to_requests():
     while(1):
         try:
             host, _ = s.accept()
-
             with host:
                 data = host.recv(1024)
-
-                if not data:
-                    break
                 x = json.loads(data)
                 d = dict()
                 p = []
@@ -47,10 +47,13 @@ def listen_to_requests():
 
                 p.append(r)
                 d[x['job_id']] = p
-                jobs_pq.insert(d)
-            jobs_pq.display()
+                with pq_lock:
+                    jobs_pq.insert(d)
+            with pq_lock:
+                jobs_pq.display()
         except KeyboardInterrupt:
             break
+
 
 def handle_roundrobin(workers):
     #jobs is structured like: [{'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]}, {'1': [[('1_M0', 1)], [('1_R0', 2), ('1_R1', 4)]]}]
@@ -60,36 +63,34 @@ def handle_roundrobin(workers):
         while(not worker_found):
             for w in workers:
                 if(w["free_slots"]):
-                    worker_found=True
-                    worker_id=w["worker_id"]        #worker_id
-                    w["free_slots"]-=1
-                    #task -> workers[id-1]
-                    #w[free_slots]++ after job is completed
+                    worker_found = True
+                    worker_id = w["worker_id"]  # worker_id
+                    w["free_slots"] -= 1
+                    # task -> workers[id-1]
+                    # w[free_slots]++ after job is completed
                     break
-
-
 
 
 def handle_random(workers, worker_ids):
 
     with pq_lock:
-        while(not jobs_pq.isEmpty()):
-            task=jobs_pq.getTask()
-            worker_found=False
-            while(not worker_found):
-                worker_id=random.choice(worker_ids)
-                if(workers[worker_id]["free_slots"]):
-                    worker_found=True
-                    workers[worker_id]["free_slots"]-=1
-                    print(task)
-                    print("Task %s assigned to worker %d"%(task[0],worker_id))
-                    #####################
-                    # Send task to worker
-                    send_to_worker(task)
-                    #####################
-                    break
-
-
+        while(1):
+            while(not jobs_pq.isEmpty()):
+                task=jobs_pq.getTask()
+                worker_found=False
+                while(not worker_found):
+                    worker_id=random.choice(worker_ids)
+                    if(workers[worker_id]["free_slots"]):
+                        worker_found=True
+                        workers[worker_id]["free_slots"]-=1
+                        print(task)
+                        print("Task %s assigned to worker %d"%(task[0],worker_id))
+                        #####################
+                        # Send task to worker
+                        # send_tasks()
+                        #####################
+                        break
+            print("No more jobs left")
 
 
 def handle_LL(workers):
@@ -100,31 +101,29 @@ def handle_LL(workers):
         max_id=0
         while(not worker_found):        #add wait clause if no slots are free?
             for w in workers:
-                if(w["free_slots"]>max_slots):
-                    max_slots=workers[w]["free_slots"]
-                    max_id=w["worker_id"]
+                if(w["free_slots"] > max_slots):
+                    max_slots = workers[w]["free_slots"]
+                    max_id = w["worker_id"]
 
             if(workers[max_id-1]["free_slots"]):
-                worker_found=True
-                workers[max_id-1]["free_slots"]-=1
-                #task -> workers[max_id-1]
+                worker_found = True
+                workers[max_id-1]["free_slots"] -= 1
+                # task -> workers[max_id-1]
 
 def listen_to_workers():
     print("Listening to workers")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('localhost', 5001))
     s.listen(1)
-    
+
     while(1):
         try:
-            host, _ = s.accept()    
+            host, _ = s.accept()
             with host:
                 data = host.recv(1024)
                 print(data.decode())
         except KeyboardInterrupt:
             break
-
-
 
 
 if __name__ == '__main__':
@@ -163,7 +162,7 @@ if __name__ == '__main__':
     
     print("Connection with Workers successful!!\n")
     
-    
+
     requests_listener = threading.Thread(target=listen_to_requests)
     # worker_listener = threading.Thread(target=listen_to_workers)
     requests_listener.start()
