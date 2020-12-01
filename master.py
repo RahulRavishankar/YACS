@@ -56,65 +56,56 @@ def listen_to_requests():
 
 def handle_roundrobin(jobs,workers):
     #jobs is structured like: [{'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]}, {'1': [[('1_M0', 1)], [('1_R0', 2), ('1_R1', 4)]]}]
-    for job in jobs:
-        tasks=list(job.values())[0]
-        mappers=tasks[0]
-        reducers=tasks[1]
-        while(mappers):
-            worker_found=False
-            while(not worker_found):        #add wait clause if no slots are free?
+    while(jobs):
+        task=getTask(jobs)
+        worker_found=False
+        while(not worker_found):
             for w in workers:
                 if(w["free_slots"]):
                     worker_found=True
-                    worker_id=w["worker_id"]
+                    worker_id=w["worker_id"]        #worker_id
                     w["free_slots"]-=1
-                    mappers.pop() #- > workers[id-1]
-                    #w[workerId]++ after job is completed
+                    #task -> workers[id-1]
+                    #w[free_slots]++ after job is completed
                     break
-        while(reducers):
-            worker_found=False
-            while(not worker_found):
-            for w in workers:
-                if(w["free_slots"]):
-                    worker_found=True
-                    worker_id=w["worker_id"]
-                    w["free_slots"]-=1
-                    reducers.pop() #- > workers[id-1]
-                    #w[workerId]++ after job is completed
-                    break
+
 
 
 
 def handle_random(jobs,workers):
-    for job in jobs:
-        tasks=list(job.values())[0]
-        mappers=tasks[0]
-        reducers=tasks[1]
-        while(mappers):
-            worker_found=False
-            while(not worker_found):        #add wait clause if no slots are free?
-                worker_id=random.randint(1,3)
-                if(workers[worker_id-1]["free_slots"]):
-                    worker_found=True
-                    workers[worker_id-1]["free_slots"]-=1
-                    mappers.pop() # -> workers[id-1]
-                    #w[workerId]++ after job is completed
-                    break
-        while(reducers):
-            worker_found=False
-            while(not worker_found):
-                worker_id=random.randint(1,3)
-                if(workers[worker_id-1]["free_slots"]):
-                    worker_found=True
-                    workers[worker_id-1]["free_slots"]-=1
-                    reducers.pop() # -> workers[id-1]
-                    #w[workerId]++ after job is completed
-                    break
+    while(jobs):
+        task=getTask(jobs)
+        worker_found=False
+        choose=[1,2,3]
+        while(not worker_found):
+            worker_id=random.choice(choose)
+            if(workers[worker_id-1]["free_slots"]):
+                worker_found=True
+                workers[worker_id-1]["free_slots"]-=1
+                #task -> workers[id-1]
+                #w[free_slots]++ after job is completed
+                break
+
 
 
 
 def handle_LL():
-    pass
+    while(jobs):
+        task=getTask(jobs)
+        worker_found=False
+        max_slots=0
+        max_id=0
+        while(not worker_found):        #add wait clause if no slots are free?
+            for w in workers:
+                if(w["free_slots"]>max_slots):
+                    max_slots=workers[w]["free_slots"]
+                    max_id=w["worker_id"]
+
+            if(workers[max_id-1]["free_slots"]):
+                worker_found=True
+                workers[max_id-1]["free_slots"]-=1
+                #task -> workers[max_id-1]
+
 
 def listen_to_workers():
     print("Listening to workers")
