@@ -61,24 +61,6 @@ class PriorityQueue:
 
         return task 
 
-    # def getTask(self):
-    #     priorities=[x[0] for x in self.queue]
-    #     priorindex=priorities.index(max(priorities))
-    #     job=self.queue[priorindex][1]
-    #     key=list(job.keys())[0]
-    #     tasks=list(job.values())[0]
-    #     mappers=tasks[0]
-    #     reducers=tasks[1]
-    #     if(mappers):
-    #         task=mappers.pop()  
-    #         if(len(mappers)==0):
-    #             self.queue[priorindex][0]=2
-    #     else:
-    #         task=reducers.pop()
-    #         if(len(reducers)==0):
-    #             del self.queue[priorindex]
-
-    #     return task
     
     def popTask(self, taskId):
         job_Id, taskType = taskId.split("_")
@@ -88,7 +70,6 @@ class PriorityQueue:
         for i in range(len(self.queue)):
             if(self.queue[i][1]["job_id"]==job_Id):
                 for j in range(len(self.queue[i][1]["sent_tasks"])):
-                    # print("Bhosdk",self.queue[i][1]["sent_tasks"], "---->",j)
                     if(self.queue[i][1]["sent_tasks"][j][0]==taskId):
                         del self.queue[i][1]["sent_tasks"][j]
                         return
@@ -100,30 +81,5 @@ class PriorityQueue:
     def display(self):
         for job in self.queue:
             print(job)
-
-
-# p = PriorityQueue()
-# p.insert({'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]})
-# p.insert({'1': [[('1_M0', 1),("1_M1",4),("1_M2",3)], [('1_R0', 2), ('1_R1', 4)]]})
-# print("Yoooooo",p.getTask())
-# print(p.popTask("0_M0"))
-# print("Yoooooo",p.getTask())
-# print("Yoooooo",p.getTask())
-# print("Yoooooo",p.getTask())
-# print("Yoooooo",p.getTask())
-# print("Yoooooo",p.getTask())
-# print("Yoooooo",p.getTask())
-# print(p.popTask("1_M0"))
-# print(p.popTask("1_M1"))
-# print("Yoooooo",p.getTask())
-# print(p.popTask("1_M2"))
-# print("Yoooooo",p.getTask())
-# print(p.popTask("1_R1"))
-# print(p.popTask("1_R3"))
-# print("Yoooooo",p.getTask())
-# print(p.popTask("1_M2"))
-# print("Yoooooo",p.getTask())
-# print(p.popTask("1_R1"))
-# print(p.popTask("1_R3"))
 
 
