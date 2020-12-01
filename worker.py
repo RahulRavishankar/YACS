@@ -25,6 +25,7 @@ def listen_to_master():
                     d = data.decode()
                     print(d)
                     l = d.split(',')
+                    l[1]=int(l[1])
                     print(l)
                     exec_pool.append(l)
                 print(exec_pool)
@@ -32,21 +33,30 @@ def listen_to_master():
                 break
 
 
+# def execute_tasks():
+#     print("Executing the tasks assigned")
+#     while(1):
+#         if(len(exec_pool) > 0):
+#            threading.Timer(1.0,execute_tasks).start()
+#            for i in exec_pool:
+#               print(i[1]) 
+#               x = int(i[1])
+#               x -= 1
+#               i[1] = str(x)
+#               if(int(x) == 0):
+#                 exec_pool.remove(i)
+#                 send_update(i[0])
+#         #waiting       
 def execute_tasks():
     print("Executing the tasks assigned")
     while(1):
-        if(len(exec_pool) > 0):
-           threading.Timer(1.0,execute_tasks).start()
-           for i in exec_pool:
-              print(i[1]) 
-              x = int(i[1])
-              x -= 1
-              i[1] = str(x)
-              if(int(x) == 0):
-                exec_pool.remove(i)
-                send_update(i[0])
-        #waiting       
-
+        while(len(exec_pool) > 0):
+            for i in exec_pool:
+                i[1]-=1
+                if(int(i[1]) == 0):
+                    exec_pool.remove(i)
+                    send_update(i[0])
+                time.sleep(1)      
 
 def send_update(data):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
