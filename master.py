@@ -5,6 +5,7 @@ import sys
 import random
 import numpy
 import threading
+from Priority_Queue import PriorityQueue
 
 # [(1, {'0': 
 #           [[('0_M0', 4)], [('0_R0', 1)]]
@@ -13,7 +14,7 @@ import threading
 #           [[('1_M0', 1)], [('1_R0', 1), ('1_R1', 1)]]
 #      })
 # ]
-jobs_pq = []   #format: (prority, job)
+jobs_pq = PriorityQueue()   #format: (prority, job)
 MAP_PRIORITY = 1
 REDUCE_PRIORITY = 2
 lock = threading.Lock()
@@ -49,15 +50,15 @@ def listen_to_requests():
 
                 p.append(r)
                 d[x['job_id']] = p
-                jobs_pq.append((MAP_PRIORITY,d))
+                jobs_pq.insert(d)
             print(jobs_pq)
         except KeyboardInterrupt:
             break
 
-def handle_roundrobin(jobs,workers):
+def handle_roundrobin(workers):
     #jobs is structured like: [{'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]}, {'1': [[('1_M0', 1)], [('1_R0', 2), ('1_R1', 4)]]}]
-    while(jobs):
-        task=getTask(jobs)
+    while(not jobs_pq.isEmpty()):
+        task = jobs_pq.getTask()
         worker_found=False
         while(not worker_found):
             for w in workers:
@@ -72,9 +73,9 @@ def handle_roundrobin(jobs,workers):
 
 
 
-def handle_random(jobs,workers):
-    while(jobs):
-        task=getTask(jobs)
+def handle_random(workers):
+    while(len(jobs_pq)):
+        task=jobs_pq.getTask()
         worker_found=False
         choose=[1,2,3]
         while(not worker_found):
@@ -89,9 +90,9 @@ def handle_random(jobs,workers):
 
 
 
-def handle_LL():
-    while(jobs):
-        task=getTask(jobs)
+def handle_LL(workers):
+    while(not jobs_pq.isEmpty()):
+        task=jobs_pq.getTask()
         worker_found=False
         max_slots=0
         max_id=0
@@ -105,7 +106,6 @@ def handle_LL():
                 worker_found=True
                 workers[max_id-1]["free_slots"]-=1
                 #task -> workers[max_id-1]
-
 
 def listen_to_workers():
     print("Listening to workers")
@@ -166,11 +166,11 @@ if __name__ == '__main__':
 
     print("Continue processing on the master thread to assign jobs")
     if algo == "RR":
-        handle_roundrobin()
+        handle_roundrobin(workers)
     elif algo == "RANDOM":
-        handle_random()
+        handle_random(workers)
     elif algo == "LL":
-        handle_LL()
+        handle_LL(workers)
 
     worker_listener.join()
     requests_listener.join()
