@@ -6,7 +6,10 @@ import random
 import numpy
 import threading
 from Priority_Queue import PriorityQueue
+import logging
 
+logging.basicConfig(filename='master.log', filemode='w',
+                    format='%(asctime)s  %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
 
 jobs_pq = PriorityQueue()   #format: (prority, job)
 pq_lock = threading.Lock()
@@ -31,15 +34,20 @@ def listen_to_requests():
             with host:
                 data = host.recv(1024)
                 x = json.loads(data)
+               
                 d = dict()
                 p = []
                 l = []
                 for i in x['map_tasks']:
                     l.append((i['task_id'], i['duration']))
+                    logging.info("job arrival" + " " +
+                                 x['job_id'] + " " + i['task_id'])
                 p.append(l)
                 r = []
                 for i in x['reduce_tasks']:
                     r.append((i['task_id'], i['duration']))
+                    logging.info("job arrival" + " " +
+                                 x['job_id'] + " " + i['task_id'])
 
                 p.append(r)
                 d[x['job_id']] = p
