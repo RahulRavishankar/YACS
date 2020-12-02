@@ -2,6 +2,8 @@ import sys
 import math
 import re
 import matplotlib.pyplot as plt
+from operator import itemgetter
+
 
 from datetime import datetime,date,time
 
@@ -15,6 +17,8 @@ master = sys.argv[2]
 f = open(worker)
 p = open(master)
 
+
+    
 def median(list):
     list.sort()
     l = len(list)
@@ -29,11 +33,12 @@ def median(list):
 arr = dict() #stores first task arrival of a job
 for line in p:
     job_id  = line.split()[4]
+    time = line.split()[1]
     if job_id not in arr:
         arr[job_id] = []
-        arr[job_id].append(datetime.strptime(line.split()[1], '%H:%M:%S').time())
+        arr[job_id].append(list(map(int,time.split(":"))))
     else:
-        arr[job_id].append(datetime.strptime(line.split()[1], '%H:%M:%S').time())
+        arr[job_id].append(list(map(int,time.split(":"))))
 
 p.close()
 
@@ -75,9 +80,9 @@ for line in f:
             ending_task[task] = time
             if job not in end:
                 end[job] = []
-                end[job].append(datetime.strptime(time, '%H:%M:%S').time())
+                end[job].append(time.split(":"))
             else:
-                end[job].append(datetime.strptime(time, '%H:%M:%S').time())
+                end[job].append(time.split(":"))
                 
             
 
@@ -87,14 +92,18 @@ a = date.today()
 job_completion = []
 
 for i in end.keys():
-    sorted(end[i], reverse=True)
+    
+    end[i] = sorted(end[i], key=itemgetter(1,2),reverse=True)
     print(i,end[i])
-    sorted(arr[i])
+    arr[i] = sorted(arr[i], key=itemgetter(1,2))
     #print(i,arr[i])
     A_1 = end[i][0]
-    
+    t1 = str(end[i][0][0]) + ":" + str(end[i][0][1]) + ":" + str(end[i][0][2])
+    t1_ = datetime.strptime(t1, '%H:%M:%S').time()
     A_2 = arr[i][0]
-    dif = datetime.combine(a, A_1) - datetime.combine(a, A_2)
+    t2 = str(arr[i][0][0]) + ":" + str(arr[i][0][1]) + ":" + str(arr[i][0][2])
+    t2_ = datetime.strptime(t2, '%H:%M:%S').time()
+    dif = datetime.combine(a, t1_) - datetime.combine(a, t2_)
     
     job_completion.append(dif.total_seconds())
 
