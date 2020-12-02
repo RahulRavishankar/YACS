@@ -1,19 +1,16 @@
-02-Dec-20 12:18:10  starting task 1 1_M0 3
-02-Dec-20 12:18:13  starting task 6 6_M1 3
-02-Dec-20 12:18:14  starting task 7 7_M1 3
-02-Dec-20 12:18:20  ending task 7 7_M1 3
-
-02-Dec-20 12:18:14  starting task 7 7_M2 1
-02-Dec-20 12:18:17  ending task 5 5_M0 1
-02-Dec-20 12:18:17  starting task 8 8_M1 1
-02-Dec-20 12:18:20  ending task 7 7_M2 1
-02-Dec-20 12:18:20  starting task 9 9_M1 1
-02-Dec-20 12:18:24  ending task 8 8_M1 1
-02-Dec-20 12:18:27  ending task 9 9_M1 1
- 2
-02-Dec-20 12:18:18  ending task 3 3_M0 2
-02-Dec-20 12:18:18  starting task 8 8_M0 2
-02-Dec-20 12:18:20  ending task 7 7_M3 2
-02-Dec-20 12:18:20  starting task 9 9_M0 2
-02-Dec-20 12:18:24  ending task 8 8_M0 2
-02-Dec-20 12:18:27  ending task 9 9_M0 2
+02-Dec-20 17:12:51  starting task 0 0_M1 1
+02-Dec-20 17:12:53  starting task 1 1_M0 3
+02-Dec-20 17:12:56  ending task 0 0_M1 1
+02-Dec-20 17:12:58  starting task 7 7_M3 1
+02-Dec-20 17:12:58  starting task 7 7_M1 1
+02-Dec-20 17:12:59  ending task 1 1_M0 3
+02-Dec-20 17:13:00  starting task 8 8_M2 1
+02-Dec-20 17:13:02  ending task 7 7_M0 1
+02-Dec-20 17:13:03  starting task 9 9_M0 1
+02-Dec-20 17:13:06  ending task 7 7_M3 1
+02-Dec-20 17:13:10  ending task 9 9_M0 1
+ 
+02-Dec-20 17:13:06  ending task 8 8_M1 2
+02-Dec-20 17:13:09  ending task 9 9_M1 2
+02-Dec-20 17:13:05  ending task 8 8_M2 1
+02-Dec-20 17:12:59  ending task 7 7_M1 1

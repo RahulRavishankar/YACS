@@ -1,41 +1,36 @@
-02-Dec-20 12:26:37  starting task 1 1_M0 3
-02-Dec-20 12:26:39  starting task 2 2_M0 2
-02-Dec-20 12:26:39  starting task 3 3_M1 2
-02-Dec-20 12:26:47  ending task 2 2_M1 3
-02-Dec-20 12:26:47  starting task 7 7_M0 3
-02-Dec-20 12:26:54  ending task 7 7_M0 3
-02-Dec-20 12:26:54  starting task 8 8_M0 3
-02-Dec-20 12:27:01  ending task 8 8_M0 3
-02-Dec-20 12:27:01  starting task 9 9_M0 3
-02-Dec-20 12:27:08  ending task 9 9_M0 3
-
-02-Dec-20 12:26:47  starting task 7 7_M1 1
-02-Dec-20 12:26:50  ending task 6 6_M1 1
-02-Dec-20 12:26:51  starting task 8 8_M3 1
-02-Dec-20 12:26:54  ending task 7 7_M1 1
-02-Dec-20 12:26:54  starting task 8 8_M1 1
-0202-Dec-20 12:26:57  ending task 8 8_M2 20202-Dec-20 12:26:57  starting task 9 9_M1 20202-Dec-20 12:27:02  ending task 9 9_M1 2
-job arrival 4 4_R0
-02-Dec-20 12:26:41  job arrival 5 5_M0
-02-Dec-20 12:26:41  job arrival 5 5_M1
-02-Dec-20 12:26:41  job arrival 5 5_M2
-02-Dec-20 12:26:41  job arrival 5 5_R0
-02-Dec-20 12:26:42  job arrival 6 6_M0
-02-Dec-20 12:26:42  job arrival 6 6_M1
-02-Dec-20 12:26:42  job arrival 6 6_M2
-02-Dec-20 12:26:42  job arrival 6 6_R0
-02-Dec-20 12:26:43  job arrival 7 7_M0
-02-Dec-20 12:26:43  job arrival 7 7_M1
-02-Dec-20 12:26:43  job arrival 7 7_R0
-02-Dec-20 12:26:43  job arrival 7 7_R1
-02-Dec-20 12:26:43  job arrival 8 8_M0
-02-Dec-20 12:26:43  job arrival 8 8_M1
-02-Dec-20 12:26:43  job arrival 8 8_M2
-02-Dec-20 12:26:43  job arrival 8 8_M3
-02-Dec-20 12:26:43  job arrival 8 8_R0
-02-Dec-20 12:26:43  job arrival 8 8_R1
-02-Dec-20 12:26:44  job arrival 9 9_M0
-02-Dec-20 12:26:44  job arrival 9 9_M1
-02-Dec-20 12:26:44  job arrival 9 9_M2
-02-Dec-20 12:26:44  job arrival 9 9_R0
-02-Dec-20 12:26:44  job arrival 9 9_R1
+02-Dec-20 17:12:51  job arrival 0 0_M0
+02-Dec-20 17:12:51  job arrival 0 0_M1
+02-Dec-20 17:12:51  job arrival 0 0_M2
+02-Dec-20 17:12:51  job arrival 0 0_M3
+02-Dec-20 17:12:51  job arrival 0 0_R0
+02-Dec-20 17:12:53  job arrival 1 1_M0
+02-Dec-20 17:12:53  job arrival 1 1_M1
+02-Dec-20 17:12:53  job arrival 1 1_R0
+02-Dec-20 17:12:53  job arrival 1 1_R1
+02-Dec-20 17:12:54  job arrival 2 2_M0
+02-Dec-20 17:12:54  job arrival 2 2_M1
+02-Dec-20 17:12:54  job arrival 2 2_R0
+02-Dec-20 17:12:54  job arrival 2 2_R1
+02-Dec-20 17:12:54  job arrival 3 3_M0
+02-Dec-20 17:12:54  job arrival 3 3_R0
+02-Dec-20 17:12:56  job arrival 4 4_M0
+02-Dec-20 17:12:56  job arrival 4 4_R0
+02-Dec-20 17:12:56  job arrival 4 4_R1
+02-Dec-20 17:12:56  job arrival 5 5_M0
+02-Dec-20 17:12:56  job arrival 5 5_R0
+02-Dec-20 17:12:58  job arrival 6 6_M0
+02-Dec-20 17:12:58  job arrival 6 6_R0
+02-Dec-20 17:12:58  job arrival 7 7_M0
+02-Dec-20 17:12:58  job arrival 7 7_M1
+02-Dec-20 17:12:58  job arrival 7 7_M2
+02-Dec-20 17:12:58  job arrival 7 7_M3
+02-Dec-20 17:12:58  job arrival 7 7_R0
+02-Dec-20 17:13:00  job arrival 8 8_M0
+02-Dec-20 17:13:00  job arrival 8 8_M1
+02-Dec-20 17:13:00  job arrival 8 8_M2
+02-Dec-20 17:13:00  job arrival 8 8_M3
+02-Dec-20 17:13:00  job arrival 8 8_R0
+02-Dec-20 17:13:00  job arrival 8 8_R1
+02-Dec-20 17:13:03  job arrival 9 9_M0
+02-Dec-20 17:13:03  job arrival 9 9_M1
+02-Dec-20 17:13:03  job arrival 9 9_R0
