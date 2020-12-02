@@ -8,11 +8,12 @@ import threading
 from Priority_Queue import PriorityQueue
 import logging
 
-logging.basicConfig(filename='master.log', filemode='w',
+logging.basicConfig(filename='worker.log', filemode='w',
                     format='%(asctime)s  %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
 
 jobs_pq = PriorityQueue()   #format: (prority, job)
 pq_lock = threading.Lock()
+logging_lock = threading.Lock()
 workers_lock = {}
 sockets = {}
 
@@ -46,8 +47,10 @@ def listen_to_requests():
                 r = []
                 for i in x['reduce_tasks']:
                     r.append((i['task_id'], i['duration']))
+                    logging_lock.acquire()
                     logging.info("job arrival" + " " +
                                  x['job_id'] + " " + i['task_id'])
+                    logging_lock.release()             
 
                 p.append(r)
                 d[x['job_id']] = p
