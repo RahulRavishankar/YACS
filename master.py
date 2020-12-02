@@ -70,6 +70,7 @@ def handle_roundrobin(workers):
             worker_id = (prev_worker_id +1)%len(worker_ids)
             count = 0
             while(count < len(worker_ids)):
+                time.sleep(0.1)
                 count += 1
                 # print(worker_id+1)
                 workers_lock[worker_id+1].acquire()
