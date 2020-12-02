@@ -13,8 +13,9 @@ worker_id = int(args[2])
 
 #logging_lock = threading.Lock()
 
-'''logging.basicConfig(filename='worker.log', filemode='w',
-                    format='%(asctime)s  %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)'''
+logging.basicConfig(filename='worker.log', filemode='w',
+                    format='%(asctime)s  %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
+
 
 def send_update(data):
     time.sleep(data[1])
@@ -22,23 +23,11 @@ def send_update(data):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(('localhost', 5001))
     msg = data[0] + "," + str(worker_id)
-    
-    
     time.sleep(3)
     s.send(msg.encode())
-    print("Execution of %s completed"%(data[0]))
+    print("Execution of %s completed" % (data[0]))
     s.close()
-    #logging_lock.acquire()
-    #job_id = ""
-    #i = 0
-    #while (data[0][i] != '_'):
-        #job_id += data[0][i]
-        #i += 1
-    #job_id = (data[0].split('_'))[0]
-    #logging.info("ending task" + " " + job_id +
-                 #" " + data[0] + " " + str(worker_id))
 
-    #logging_lock.release()
 
 def listen_to_master():
     print("Listening to master for jobs")
@@ -50,23 +39,14 @@ def listen_to_master():
         data = host.recv(1024)
         d = data.decode()
         l = d.split(',')
-        l[1]=int(l[1])
+        l[1] = int(l[1])
         # print("Creating a new thread for:", l)
-    
-        t = threading.Thread(target=send_update,args=(l,))
+        t = threading.Thread(target=send_update, args=(l,))
         t.start()
-        
-        host.close()
-        '''logging_lock.acquire()
-        job_id = (l[0].split('_'))[0]
-        logging.info("starting task" + " " + job_id + " "
-                     + l[0] + " " + str(worker_id))  # job_id left
-        logging_lock.release()'''
-        
+        # host.close()
+
     print("NOT LISTENING TO MASTER ANYMORE")
     s.close()
-
- 
 
 
 if __name__ == '__main__':

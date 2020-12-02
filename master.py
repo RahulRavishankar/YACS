@@ -8,17 +8,22 @@ import threading
 from Priority_Queue import PriorityQueue
 import logging
 
-'''logging.basicConfig(filename='master.log', filemode='w',
+logging.basicConfig(filename='master.log', filemode='w',
+                    format='%(asctime)s  %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
+
+''''logging.basicConfig(filename='worker.log', filemode='w',
                     format='%(asctime)s  %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)'''
 
-jobs_pq = PriorityQueue()   #format: (prority, job)
+
+jobs_pq = PriorityQueue()  # format: (prority, job)
 pq_lock = threading.Lock()
-#logging_lock = threading.Lock()
 workers_lock = {}
 sockets = {}
+lock = threading.Lock()
+
 
 def send_tasks(data, port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(('localhost', port))
     s.send(data.encode())
     s.close()
@@ -35,29 +40,27 @@ def listen_to_requests():
             with host:
                 data = host.recv(1024)
                 x = json.loads(data)
-               
                 d = dict()
                 p = []
                 l = []
                 for i in x['map_tasks']:
                     l.append((i['task_id'], i['duration']))
-                    ''''logging_lock.acquire()
+                    lock.acquire()
                     logging.info("job arrival" + " " +
-                                 x['job_id'] + " " + i['task_id'])
-                    logging_lock.release()'''
+                                 x["job_id"] + " " + i["task_id"])
+                    lock.release()
                 p.append(l)
                 r = []
                 for i in x['reduce_tasks']:
                     r.append((i['task_id'], i['duration']))
-                    '''logging_lock.acquire()
-                    logging.info("job arrival" + " " +
-                                 x['job_id'] + " " + i['task_id'])
-                    logging_lock.release()'''           
+                    lock.acquire()
+                    logging.info("job arrival" + " " + x["job_id"] + " " + i["task_id"])
+                    lock.release()
 
                 p.append(r)
                 d[x['job_id']] = p
 
-                pq_lock.acquire()    
+                pq_lock.acquire()
                 jobs_pq.insert(d)
                 pq_lock.release()
             pq_lock.acquire()
@@ -73,14 +76,14 @@ def handle_roundrobin(workers):
 
     while(not jobs_pq.isEmpty()):
         pq_lock.acquire()
-        task=jobs_pq.getTask()
+        task = jobs_pq.getTask()
         pq_lock.release()
-        if(task==None):
+        if(task == None):
             continue
-        
+
         found = False
         while(not found):
-            worker_id = (prev_worker_id +1)%len(worker_ids)
+            worker_id = (prev_worker_id + 1) % len(worker_ids)
             count = 0
             while(count < len(worker_ids)):
                 time.sleep(0.1)
@@ -88,23 +91,30 @@ def handle_roundrobin(workers):
                 # print(worker_id+1)
                 workers_lock[worker_id+1].acquire()
                 freeSlotisAvailable = workers[worker_id+1]["free_slots"]
-                workers_lock[worker_id+1].release()            
+                workers_lock[worker_id+1].release()
                 if(freeSlotisAvailable):
-                    prev_worker_id = worker_id                    
+                    prev_worker_id = worker_id
                     workers_lock[worker_id+1].acquire()
                     workers[worker_id+1]["free_slots"] -= 1
                     workers_lock[worker_id+1].release()
 
-                    print("Task %s assigned to worker %d"%(str(task),worker_id+1))
+                    print("Task %s assigned to worker %d" %
+                          (str(task), worker_id+1))
                     #####################
                     # Send task to worker
-                    send_tasks(str(task[0])+","+str(task[1]),workers[worker_id+1]["port"])
+                    send_tasks(str(task[0])+","+str(task[1]),
+                               workers[worker_id+1]["port"])
                     #####################
                     found = True
-                    
+                    lock.acquire()
+                    task_id = str(task[0])
+                    job_id = task_id.split("_")[0]
+                    logging.info("starting task" + " " + job_id +
+                                 " " + task_id + " " + str(worker_id))
+                    lock.release()
                     break
-                worker_id = (worker_id + 1)%len(worker_ids)
-                
+                worker_id = (worker_id + 1) % len(worker_ids)
+
 
 def handle_random(workers, worker_ids):
     # print("In random")
@@ -117,29 +127,34 @@ def handle_random(workers, worker_ids):
     while(1):
         while(not jobs_pq.isEmpty()):
             pq_lock.acquire()
-            task=jobs_pq.getTask()
+            task = jobs_pq.getTask()
             pq_lock.release()
-            if(task==None):
+            if(task == None):
                 continue
-            worker_found=False
+            worker_found = False
             while(not worker_found):
-                worker_id=random.choice(worker_ids)
+                worker_id = random.choice(worker_ids)
                 workers_lock[worker_id].acquire()
                 freeSlotisAvailable = workers[worker_id]["free_slots"]
-                workers_lock[worker_id].release()            
+                workers_lock[worker_id].release()
                 if(freeSlotisAvailable):
-                    worker_found=True
+                    worker_found = True
                     workers_lock[worker_id].acquire()
-                    workers[worker_id]["free_slots"]-=1
+                    workers[worker_id]["free_slots"] -= 1
                     workers_lock[worker_id].release()
-                    
-                    print("Task %s assigned to worker %d"%(str(task),worker_id))
+
+                    print("Task %s assigned to worker %d" %
+                          (str(task), worker_id))
                     #####################
                     # Send task to worker
-                    send_tasks(str(task[0])+","+str(task[1]),workers[worker_id]["port"])
-                    
-                    
-        #logging_lock.release()
+                    send_tasks(str(task[0])+","+str(task[1]),
+                               workers[worker_id]["port"])
+                    lock.acquire()
+                    task_id = str(task[0])
+                    job_id = task_id.split("_")[0]
+                    logging.info("starting task" + " " + job_id +
+                             " " + task_id + " " + str(worker_id))
+                    lock.release()
                     #####################
                     # break
             # print("All workers are busy")
@@ -151,13 +166,13 @@ def handle_random(workers, worker_ids):
 def handle_LL(workers):
     while(not jobs_pq.isEmpty()):
         pq_lock.acquire()
-        task=jobs_pq.getTask()
+        task = jobs_pq.getTask()
         pq_lock.release()
-        if(task==None):
+        if(task == None):
             continue
-        worker_found=False
-        max_slots=0
-        max_id=0
+        worker_found = False
+        max_slots = 0
+        max_id = 0
         while(not worker_found):
             for worker_id in workers:
                 workers_lock[worker_id].acquire()
@@ -165,18 +180,25 @@ def handle_LL(workers):
                     max_slots = workers[worker_id]["free_slots"]
                     max_id = worker_id
                 workers_lock[worker_id].release()
-            
+
             if(max_slots):
                 worker_found = True
-                print("Which: ",max_slots, max_id)
+                print("Which: ", max_slots, max_id)
 
                 workers_lock[max_id].acquire()
                 workers[max_id]["free_slots"] -= 1
                 workers_lock[max_id].release()
-                print("Task %s assigned to worker %d"%(str(task),max_id))
+                print("Task %s assigned to worker %d" % (str(task), max_id))
                 #####################
                 # Send task to worker
-                send_tasks(str(task[0])+","+str(task[1]),workers[max_id]["port"])
+                send_tasks(str(task[0])+","+str(task[1]),
+                           workers[max_id]["port"])
+                lock.acquire()
+                task_id = str(task[0])
+                job_id = task_id.split("_")[0]
+                logging.info("starting task" + " " + job_id +
+                             " " + task_id + " " + str(worker_id))
+                lock.release()
                 #####################
 
 
@@ -192,9 +214,14 @@ def listen_to_workers():
             with host:
                 msg = host.recv(1024)
                 msg = msg.decode()
-                task_id,worker_id = msg.split(',')
+                task_id, worker_id = msg.split(',')
                 worker_id = int(worker_id)
-                print("Message %s received from worker %d "%(task_id,worker_id))
+                print("Message %s received from worker %d " %
+                      (task_id, worker_id))
+                lock.acquire()
+                job_id = task_id.split("_")[0]
+                logging.info("ending task" + " " + job_id + " " + task_id + " " + str(worker_id))
+                lock.release()
                 workers_lock[worker_id].acquire()
                 workers[worker_id]["free_slots"] += 1
                 workers_lock[worker_id].release()
@@ -204,9 +231,10 @@ def listen_to_workers():
                 pq_lock.release()
         except KeyboardInterrupt:
             break
-    
+
     print("NOT LISTENING TO UPDATES FROM WORKERS ANYMORE")
     s.close()
+
 
 if __name__ == '__main__':
     if(len(sys.argv) != 3):
@@ -222,7 +250,7 @@ if __name__ == '__main__':
 
     f = open(path, 'r')
     data = json.load(f)
-    
+
     print("Connect with Workers..............")
     workers = {}
     worker_ids = []
@@ -234,8 +262,8 @@ if __name__ == '__main__':
             "free_slots": worker["slots"]
         }
         worker_ids.append(worker["worker_id"])
-        workers_lock[worker["worker_id"]]=threading.Lock()
-    
+        workers_lock[worker["worker_id"]] = threading.Lock()
+
     print("Connection with Workers successful!!\n")
 
     requests_listener = threading.Thread(target=listen_to_requests)
