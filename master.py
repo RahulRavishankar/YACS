@@ -84,7 +84,7 @@ def handle_roundrobin(workers):
                     print("Task %s assigned to worker %d"%(str(task),worker_id+1))
                     #####################
                     # Send task to worker
-                    send_tasks(str(task[0])+","+str(task[1]),workers[str(worker_id)]["port"])
+                    send_tasks(str(task[0])+","+str(task[1]),workers[worker_id+1]["port"])
                     #####################
                     found = True
                     break
@@ -121,7 +121,7 @@ def handle_random(workers, worker_ids):
                     print("Task %s assigned to worker %d"%(str(task),worker_id))
                     #####################
                     # Send task to worker
-                    # send_tasks(str(task[0])+","+str(task[1]),workers[worker_id]["port"])
+                    send_tasks(str(task[0])+","+str(task[1]),workers[worker_id]["port"])
                     #####################
                     # break
             # print("All workers are busy")
