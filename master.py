@@ -8,7 +8,7 @@ import threading
 from Priority_Queue import PriorityQueue
 import logging
 
-logging.basicConfig(filename='master.log', filemode='w',
+logging.basicConfig(filename='YACS_logs.log', filemode='w',
                     format='%(asctime)s  %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
 
 ''''logging.basicConfig(filename='worker.log', filemode='w',

@@ -12,10 +12,10 @@ from datetime import datetime,date,time
 job completion time:
 (end time of the last reduce task) – (arrival time of job at Master)'''
 
-worker = sys.argv[1]
-master = sys.argv[2]
-f = open(worker)
-p = open(master)
+filepath = sys.argv[1]
+
+f = open(filepath)
+
 
 
     
@@ -31,7 +31,7 @@ def median(list):
         return list[mid]
 
 arr = dict() #stores first task arrival of a job
-for line in p:
+'''for line in p:
     job_id  = line.split()[4]
     time = line.split()[1]
     if job_id not in arr:
@@ -40,12 +40,9 @@ for line in p:
     else:
         arr[job_id].append(list(map(int,time.split(":"))))
 
-p.close()
+p.close()'''
 
 end = dict()
-
-
-
 
 
 task_completion_time = []
@@ -53,7 +50,7 @@ job_arrival = dict()
 starting_task = dict()
 ending_task = dict()
 
-pats = ['starting task','ending task']
+pats = ['job arrival','starting task','ending task']
 pat = "(" + "|".join(pats) + ")" + "\s+(\w+)"
 hm = dict()
 
@@ -65,18 +62,26 @@ for line in f:
     if m:
         
         time = line.split()[1]
-        worker_id = line.split()[6]
+        
         task = line.split()[5]
         job = line.split()[4]
-            
+
+        if(m.group(1) == 'job arrival'):
+            if job not in arr:
+                arr[job] = []
+                arr[job].append(list(map(int,time.split(":"))))
+            else:
+                arr[job].append(list(map(int,time.split(":"))))
 
         if(m.group(1) == 'starting task'):
+            worker_id = line.split()[6]
             starting_task[task] = time
             if(worker_id + " " + time) not in hm:
                 hm[worker_id + " " + time] = 1
             else:
                 hm[worker_id + " " + time] += 1
         if(m.group(1) == 'ending task'):
+            worker_id = line.split()[6]
             ending_task[task] = time
             if job not in end:
                 end[job] = []
