@@ -42,8 +42,10 @@ Scheduling algorithms:
 
 Least loaded:
 Master node checks the no. of available slots in each machine and picks the one with the highest no. of free slots for task launch
+
 Random:
 Master node selects a machine at random to launch a task. If the machine has no free slots, selects another machine at random.
+
 Round Robin: 
 worker machines are ordered based on their worker_id. Round robin method is used to pick a worker node for task launch. If the selected worker has no free slots, the next worker in ordering is picked
 
@@ -57,14 +59,16 @@ What inferences could you draw from the results?
 Was any result unexpected? Any fine-tuning done to parameters so that the results changed?
 
 
-
 Problems
 Mention problems faced and how were they solved
+
 FPL:
 streaming the data
 Converting dstreams to dataframes 
 Tracking and updating the data over the course of different computations
+
 Switched to YACS 
+
 YACS:
 Deciding on an efficient data structure
 Connection reset by peer error, keeping track of socket connections
