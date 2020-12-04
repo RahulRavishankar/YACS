@@ -112,7 +112,7 @@ def bar_graph(logs):
 	ax.bar(xaxis,yaxis)
 	plt.show()
 
-def heatMap(logs):
+def heatMap(logs,algo):
 	tstamp=0#getTimeSec(f.readlines()[0][10][18])
 	w1=0
 	w2=0
@@ -172,6 +172,7 @@ def heatMap(logs):
 	heated=heat.pivot(index="Workers",columns="Time",values="Tasks Running")
 
 	sns.heatmap(heated, annot=True, fmt="g", cmap='viridis')
+	plt.title("Worker job allocation:(%s)"%algo)
 	plt.show()
 
 ''''task completion time:  
@@ -180,8 +181,9 @@ job completion time:
 (end time of the last reduce task) – (arrival time of job at Master)'''
 
 filepath = sys.argv[1]
+algo = sys.argv[2]
 f = open(filepath)
 logs=f.readlines()
-heatMap(logs)
+heatMap(logs,algo)
 bar_graph(logs)
 f.close()            
