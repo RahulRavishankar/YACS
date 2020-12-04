@@ -117,8 +117,13 @@ def heatMap(logs):
 	w2=0
 	w3=0
 	heatframe=[]
+	base_time_set = False
+	base_time = -1
 	for line in logs:
 		cur_time=getTimeSec(line[10:18])
+		if(not base_time_set):
+			base_time_set = True
+			base_time = cur_time
 		if "starting task" in line:
 			worker=line[-2]
 			if(worker=='1'):
@@ -147,7 +152,7 @@ def heatMap(logs):
 				heatframe.append((cur_time,"W2",w2))
 				heatframe.append((cur_time,"W3",w3))
 		
-		if cur_time>tstamp:
+		if(cur_time>tstamp):
 			heatframe.append((tstamp,"W1",w1))
 			heatframe.append((tstamp,"W2",w2))
 			heatframe.append((tstamp,"W3",w3))
@@ -156,11 +161,10 @@ def heatMap(logs):
 	workers=[]
 	times=[]
 	tasks=[]
-	basetime=heatframe[0][0]
+	# basetime=heatframe[0][0]
 	for x in heatframe:
-		times.append(x[0]-basetime)
+		times.append(x[0]-base_time)
 		workers.append(x[1])
-	#	print("BASE:",basetime)
 		tasks.append(x[2])
 		
 	heat=pd.DataFrame({"Time":times,"Workers":workers,"Tasks Running":tasks})

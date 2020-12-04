@@ -23,7 +23,6 @@ def send_update(data):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(('localhost', 5001))
     msg = data[0] + "," + str(worker_id)
-    time.sleep(3)
     s.send(msg.encode())
     print("Execution of %s completed" % (data[0]))
     s.close()

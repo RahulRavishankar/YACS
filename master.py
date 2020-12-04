@@ -110,19 +110,13 @@ def handle_roundrobin(workers):
                     task_id = str(task[0])
                     job_id = task_id.split("_")[0]
                     logging.info("starting task" + " " + job_id +
-                                 " " + task_id + " " + str(worker_id))
+                                 " " + task_id + " " + str(worker_id+1))
                     lock.release()
                     break
                 worker_id = (worker_id + 1) % len(worker_ids)
 
 
 def handle_random(workers, worker_ids):
-    # print("In random")
-    # send_tasks("task1,5",4000)
-    # send_tasks("task2,5",4002)
-    # send_tasks("task3,5",4000)
-    # send_tasks("task4,5",4001)
-    # send_tasks("task5,5",4002)
 
     while(1):
         while(not jobs_pq.isEmpty()):
@@ -156,7 +150,7 @@ def handle_random(workers, worker_ids):
                              " " + task_id + " " + str(worker_id))
                     lock.release()
                     #####################
-                    # break
+                    break
             # print("All workers are busy")
         # print("No more jobs left")
 
@@ -183,8 +177,6 @@ def handle_LL(workers):
 
             if(max_slots):
                 worker_found = True
-                print("Which: ", max_slots, max_id)
-
                 workers_lock[max_id].acquire()
                 workers[max_id]["free_slots"] -= 1
                 workers_lock[max_id].release()
@@ -197,7 +189,7 @@ def handle_LL(workers):
                 task_id = str(task[0])
                 job_id = task_id.split("_")[0]
                 logging.info("starting task" + " " + job_id +
-                             " " + task_id + " " + str(worker_id))
+                             " " + task_id + " " + str(max_id))
                 lock.release()
                 #####################
 
