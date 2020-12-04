@@ -73,7 +73,6 @@ def bar_graph(logs):
 
 	for i in end.keys():
 	    end[i] = sorted(end[i], key=itemgetter(1,2),reverse=True)
-	    print(i,end[i])
 	    arr[i] = sorted(arr[i], key=itemgetter(1,2))
 	    A_1 = end[i][0]
 	    t1 = str(end[i][0][0]) + ":" + str(end[i][0][1]) + ":" + str(end[i][0][2])
@@ -92,9 +91,11 @@ def bar_graph(logs):
 	yax = [mean_jobs,median_jobs]
 	ab.bar(xax,yax)
 	plt.show()
-	print(mean_jobs)
-	print(median_jobs)
+	print("Mean: ",mean_jobs)
+	print("Median: ",median_jobs)
 
+	print("Number of tasks started: ",len(starting_task))
+	print("Number of tasks ended: ",len(ending_task))
 	#print(starting_task)        
 	for i in starting_task.keys():
 	    RA_1 = datetime.strptime(starting_task[i], '%H:%M:%S').time()
