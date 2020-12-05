@@ -69,12 +69,13 @@ def plot(logs,algo):
 					w2+=1
 				else:
 					w3+=1
+				'''
 				if tstamp==0:
 					tstamp=cur_time
 					heatframe.append((cur_time,"W1",w1))
 					heatframe.append((cur_time,"W2",w2))
 					heatframe.append((cur_time,"W3",w3))
-
+				'''
 				worker_id = line.split()[6]
 				starting_task[task] = time
 				if(worker_id + " " + time) not in hm:
@@ -89,14 +90,15 @@ def plot(logs,algo):
 					w2-=1
 				else:
 					w3-=1
+				'''
 				if tstamp==0:
 					tstamp=cur_time
 					heatframe.append((cur_time,"W1",w1))
 					heatframe.append((cur_time,"W2",w2))
 					heatframe.append((cur_time,"W3",w3))
-					worker_id = line.split()[6]
-					ending_task[task] = time
-
+				'''
+				worker_id = line.split()[6]
+				ending_task[task] = time
 				if job not in end:
 					end[job] = []
 					end[job].append(time.split(":"))
@@ -118,9 +120,9 @@ def plot(logs,algo):
 		tasks.append(heatframe[x][2])
 		
 	heat=pd.DataFrame({"Time":times,"Workers":workers,"Tasks Running":tasks})
-	print(tabulate(heat, headers = 'keys', tablefmt = 'psql')) 	
+#	print(tabulate(heat, headers = 'keys', tablefmt = 'psql')) 	
 	heated=heat.pivot(index="Workers",columns="Time",values="Tasks Running")
-	sns.heatmap(heated, annot=True, fmt="g", cmap='viridis')
+	sns.heatmap(heated, annot=True, fmt="g", cmap='viridis',cbar_kws={'label': 'Tasks Running'})
 	plt.title("Worker job allocation:(%s)"%algo)
 	plt.show()
 
@@ -181,4 +183,4 @@ algo = sys.argv[2]
 f = open(filepath)
 logs=f.readlines()
 plot(logs,algo)
-f.close()
+f.close()   
