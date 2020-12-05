@@ -9,10 +9,11 @@ from datetime import datetime,date,time
 from tabulate import tabulate
 
 def getTimeSec(timestamp):
-    time=datetime.strptime(timestamp,"%H:%M:%S")
-    a_timedelta=time-datetime(1900,1,1)
-    seconds=a_timedelta.total_seconds()
-    return seconds  
+	timestamp=timestamp[11:19]
+	time=datetime.strptime(timestamp,"%H:%M:%S")
+	a_timedelta=time-datetime(1900,1,1)
+	seconds=a_timedelta.total_seconds()
+	return seconds  
 
 def median(list):
     list.sort()
@@ -43,12 +44,17 @@ def plot(logs,algo):
 	pats = ['job arrival','starting task','ending task']
 	pat = "(" + "|".join(pats) + ")" + "\s+(\w+)"
 	hm = dict()
-
+	
 	for line in logs:
-		cur_time=getTimeSec(line[10:18])
+		cur_time=getTimeSec(line)
 		if(not base_time_set):
 			base_time_set = True
 			base_time = cur_time
+		if(cur_time>tstamp):
+			heatframe.append((tstamp,"W1",w1))
+			heatframe.append((tstamp,"W2",w2))
+			heatframe.append((tstamp,"W3",w3))
+			tstamp=cur_time
 		m = re.search(pat,line)
 		if m:
 			time = line.split()[1]
@@ -61,28 +67,22 @@ def plot(logs,algo):
 			    else:
 			        arr[job].append(list(map(int,time.split(":"))))
 
-			if(m.group(1) == 'starting task'):
+			elif(m.group(1) == 'starting task'):
 				worker=line[-2]
 				if(worker=='1'):
-					w1+=1
+					w1=w1+1
 				elif(worker=='2'):
-					w2+=1
+					w2=w2+1
 				else:
-					w3+=1
-				'''
-				if tstamp==0:
-					tstamp=cur_time
-					heatframe.append((cur_time,"W1",w1))
-					heatframe.append((cur_time,"W2",w2))
-					heatframe.append((cur_time,"W3",w3))
-				'''
+					w3=w3+1
+
 				worker_id = line.split()[6]
 				starting_task[task] = time
 				if(worker_id + " " + time) not in hm:
 					hm[worker_id + " " + time] = 1
 				else:
 					hm[worker_id + " " + time] += 1
-			if(m.group(1) == 'ending task'):
+			elif(m.group(1) == 'ending task'):
 				worker=line[-2]
 				if(worker=='1'):
 					w1-=1
@@ -90,13 +90,7 @@ def plot(logs,algo):
 					w2-=1
 				else:
 					w3-=1
-				'''
-				if tstamp==0:
-					tstamp=cur_time
-					heatframe.append((cur_time,"W1",w1))
-					heatframe.append((cur_time,"W2",w2))
-					heatframe.append((cur_time,"W3",w3))
-				'''
+
 				worker_id = line.split()[6]
 				ending_task[task] = time
 				if job not in end:
@@ -105,11 +99,6 @@ def plot(logs,algo):
 				else:
 					end[job].append(time.split(":"))
 
-		if(cur_time>tstamp):
-			heatframe.append((tstamp,"W1",w1))
-			heatframe.append((tstamp,"W2",w2))
-			heatframe.append((tstamp,"W3",w3))
-			tstamp=cur_time
 
 	workers=[]
 	times=[]
@@ -120,7 +109,6 @@ def plot(logs,algo):
 		tasks.append(heatframe[x][2])
 		
 	heat=pd.DataFrame({"Time":times,"Workers":workers,"Tasks Running":tasks})
-#	print(tabulate(heat, headers = 'keys', tablefmt = 'psql')) 	
 	heated=heat.pivot(index="Workers",columns="Time",values="Tasks Running")
 	sns.heatmap(heated, annot=True, fmt="g", cmap='viridis',cbar_kws={'label': 'Tasks Running'})
 	plt.title("Worker job allocation:(%s)"%algo)
@@ -149,8 +137,8 @@ def plot(logs,algo):
 	yax = [mean_jobs,median_jobs]
 	ab.bar(xax,yax)
 	plt.show()
-	print("Mean of job execution: ",mean_jobs)
-	print("Median of job execution: ",median_jobs)
+	print("Mean: ",mean_jobs)
+	print("Median: ",median_jobs)
 
 	print("Number of tasks started: ",len(starting_task))
 	print("Number of tasks ended: ",len(ending_task))
@@ -163,8 +151,6 @@ def plot(logs,algo):
 
 	mean_tasks = sum(task_completion_time)/len(task_completion_time)
 	median_tasks = median(task_completion_time)
-	print("Mean of tasks execution: ", mean_tasks)
-	print("Median of tasks execution: ", median_tasks)
 	fig = plt.figure()
 	ax = fig.add_axes([0,0,1,1])
 	xaxis = ['mean', 'median']
@@ -179,8 +165,9 @@ job completion time:
 (end time of the last reduce task) – (arrival time of job at Master)'''
 
 filepath = sys.argv[1]
-algo = sys.argv[2]
 f = open(filepath)
 logs=f.readlines()
+algo=logs.pop(0)[:-1]
+logs.sort(key=getTimeSec)
 plot(logs,algo)
-f.close()   
+f.close() 
