@@ -147,8 +147,8 @@ def plot(logs,algo):
 	yax = [mean_jobs,median_jobs]
 	ab.bar(xax,yax)
 	plt.show()
-	print("Mean: ",mean_jobs)
-	print("Median: ",median_jobs)
+	print("Mean of job execution: ",mean_jobs)
+	print("Median of job execution: ",median_jobs)
 
 	print("Number of tasks started: ",len(starting_task))
 	print("Number of tasks ended: ",len(ending_task))
@@ -161,6 +161,8 @@ def plot(logs,algo):
 
 	mean_tasks = sum(task_completion_time)/len(task_completion_time)
 	median_tasks = median(task_completion_time)
+	print("Mean of tasks execution: ", mean_tasks)
+	print("Median of tasks execution: ", median_tasks)
 	fig = plt.figure()
 	ax = fig.add_axes([0,0,1,1])
 	xaxis = ['mean', 'median']

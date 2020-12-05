@@ -6,6 +6,7 @@ import random
 import numpy
 import threading
 import logging
+import datetime
 
 args = sys.argv
 port = int(args[1])
@@ -13,16 +14,17 @@ worker_id = int(args[2])
 
 #logging_lock = threading.Lock()
 
-logging.basicConfig(filename='worker.log', filemode='w',
-                    format='%(asctime)s  %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
+
 
 
 def send_update(data):
+    date1 = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     time.sleep(data[1])
+    date2 = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     # print("Data: ",data)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(('localhost', 5001))
-    msg = data[0] + "," + str(worker_id)
+    msg = date1 + "," + date2 + "," + data[0] + "," + str(worker_id)
     s.send(msg.encode())
     print("Execution of %s completed" % (data[0]))
     s.close()

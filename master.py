@@ -7,12 +7,10 @@ import numpy
 import threading
 from Priority_Queue import PriorityQueue
 import logging
+import datetime
 
 logging.basicConfig(filename='YACS_logs.log', filemode='w',
-                    format='%(asctime)s  %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
-
-''''logging.basicConfig(filename='worker.log', filemode='w',
-                    format='%(asctime)s  %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)'''
+                    format='%(message)s', level=logging.INFO)
 
 
 jobs_pq = PriorityQueue()  # format: (prority, job)
@@ -46,7 +44,8 @@ def listen_to_requests():
                 for i in x['map_tasks']:
                     l.append((i['task_id'], i['duration']))
                     lock.acquire()
-                    logging.info("job arrival" + " " +
+                    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    logging.info(date + " " + "job arrival" + " " +
                                  x["job_id"] + " " + i["task_id"])
                     lock.release()
                 p.append(l)
@@ -54,7 +53,9 @@ def listen_to_requests():
                 for i in x['reduce_tasks']:
                     r.append((i['task_id'], i['duration']))
                     lock.acquire()
-                    logging.info("job arrival" + " " + x["job_id"] + " " + i["task_id"])
+                    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    logging.info(date + " " + "job arrival" +
+                                 " " + x["job_id"] + " " + i["task_id"])
                     lock.release()
 
                 p.append(r)
@@ -72,9 +73,8 @@ def listen_to_requests():
 
 
 def handle_roundrobin(workers):
-    #jobs is structured like: [{'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]}, {'1': [[('1_M0', 1)], [('1_R0', 2), ('1_R1', 4)]]}]
+    # jobs is structured like: [{'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]}, {'1': [[('1_M0', 1)], [('1_R0', 2), ('1_R1', 4)]]}]
     prev_worker_id = -1
-
 
     while(1):
         while(not jobs_pq.isEmpty()):
@@ -102,19 +102,14 @@ def handle_roundrobin(workers):
                         workers_lock[worker_id+1].release()
 
                         print("Task %s assigned to worker %d" %
-                            (str(task), worker_id+1))
+                              (str(task), worker_id+1))
                         #####################
                         # Send task to worker
                         send_tasks(str(task[0])+","+str(task[1]),
-                                workers[worker_id+1]["port"])
+                                   workers[worker_id+1]["port"])
                         #####################
                         found = True
-                        lock.acquire()
-                        task_id = str(task[0])
-                        job_id = task_id.split("_")[0]
-                        logging.info("starting task" + " " + job_id +
-                                    " " + task_id + " " + str(worker_id+1))
-                        lock.release()
+
                         break
                     worker_id = (worker_id + 1) % len(worker_ids)
 
@@ -146,12 +141,10 @@ def handle_random(workers, worker_ids):
                     # Send task to worker
                     send_tasks(str(task[0])+","+str(task[1]),
                                workers[worker_id]["port"])
-                    lock.acquire()
+
                     task_id = str(task[0])
                     job_id = task_id.split("_")[0]
-                    logging.info("starting task" + " " + job_id +
-                             " " + task_id + " " + str(worker_id))
-                    lock.release()
+
                     #####################
                     # break
             # print("All workers are busy")
@@ -184,17 +177,16 @@ def handle_LL(workers):
                     workers_lock[max_id].acquire()
                     workers[max_id]["free_slots"] -= 1
                     workers_lock[max_id].release()
-                    print("Task %s assigned to worker %d" % (str(task), max_id))
+                    print("Task %s assigned to worker %d" %
+                          (str(task), max_id))
                     #####################
                     # Send task to worker
                     send_tasks(str(task[0])+","+str(task[1]),
-                            workers[max_id]["port"])
-                    lock.acquire()
+                               workers[max_id]["port"])
+
                     task_id = str(task[0])
                     job_id = task_id.split("_")[0]
-                    logging.info("starting task" + " " + job_id +
-                                " " + task_id + " " + str(max_id))
-                    lock.release()
+
                     #####################
 
 
@@ -210,13 +202,16 @@ def listen_to_workers():
             with host:
                 msg = host.recv(1024)
                 msg = msg.decode()
-                task_id, worker_id = msg.split(',')
+                start_time, end_time, task_id, worker_id = msg.split(',')
                 worker_id = int(worker_id)
                 print("Message %s received from worker %d " %
                       (task_id, worker_id))
                 lock.acquire()
                 job_id = task_id.split("_")[0]
-                logging.info("ending task" + " " + job_id + " " + task_id + " " + str(worker_id))
+                logging.info(start_time + " " + "starting task" +
+                             " " + job_id + " " + task_id + " " + str(worker_id))
+                logging.info(end_time + " " + "ending task" + " " +
+                             job_id + " " + task_id + " " + str(worker_id))
                 lock.release()
                 workers_lock[worker_id].acquire()
                 workers[worker_id]["free_slots"] += 1
@@ -239,6 +234,7 @@ if __name__ == '__main__':
     args = sys.argv
     path = args[1]
     algo = args[2]
+    logging.info(args[2])
 
     if (algo != "RR") and (algo != "RANDOM") and (algo != "LL"):
         print("INVALID ALGORITHM! ENTER RR,LL or RANDOM")
