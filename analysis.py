@@ -6,6 +6,7 @@ import pandas as pd
 import seaborn as sns
 from operator import itemgetter
 from datetime import datetime,date,time
+from tabulate import tabulate
 
 def getTimeSec(timestamp):
     time=datetime.strptime(timestamp,"%H:%M:%S")
@@ -24,22 +25,30 @@ def median(list):
     else:
         return list[mid]
 
-def bar_graph(logs):
+def plot(logs,algo):
 	arr = dict() #stores first task arrival of a job
 	end = dict()
 	task_completion_time = []
 	job_arrival = dict()
 	starting_task = dict()
 	ending_task = dict()
+	tstamp=0
+	w1=0
+	w2=0
+	w3=0
+	heatframe=[]
+	base_time_set = False
+	base_time = -1
 
 	pats = ['job arrival','starting task','ending task']
 	pat = "(" + "|".join(pats) + ")" + "\s+(\w+)"
 	hm = dict()
-#	logs=f.readlines()
 
 	for line in logs:
-		#line = line.strip()
-		#print(line.split())
+		cur_time=getTimeSec(line[10:18])
+		if(not base_time_set):
+			base_time_set = True
+			base_time = cur_time
 		m = re.search(pat,line)
 		if m:
 			time = line.split()[1]
@@ -53,6 +62,19 @@ def bar_graph(logs):
 			        arr[job].append(list(map(int,time.split(":"))))
 
 			if(m.group(1) == 'starting task'):
+				worker=line[-2]
+				if(worker=='1'):
+					w1+=1
+				elif(worker=='2'):
+					w2+=1
+				else:
+					w3+=1
+				if tstamp==0:
+					tstamp=cur_time
+					heatframe.append((cur_time,"W1",w1))
+					heatframe.append((cur_time,"W2",w2))
+					heatframe.append((cur_time,"W3",w3))
+
 				worker_id = line.split()[6]
 				starting_task[task] = time
 				if(worker_id + " " + time) not in hm:
@@ -60,13 +82,47 @@ def bar_graph(logs):
 				else:
 					hm[worker_id + " " + time] += 1
 			if(m.group(1) == 'ending task'):
-				worker_id = line.split()[6]
-				ending_task[task] = time
+				worker=line[-2]
+				if(worker=='1'):
+					w1-=1
+				elif(worker=='2'):
+					w2-=1
+				else:
+					w3-=1
+				if tstamp==0:
+					tstamp=cur_time
+					heatframe.append((cur_time,"W1",w1))
+					heatframe.append((cur_time,"W2",w2))
+					heatframe.append((cur_time,"W3",w3))
+					worker_id = line.split()[6]
+					ending_task[task] = time
+
 				if job not in end:
 					end[job] = []
 					end[job].append(time.split(":"))
 				else:
 					end[job].append(time.split(":"))
+
+		if(cur_time>tstamp):
+			heatframe.append((tstamp,"W1",w1))
+			heatframe.append((tstamp,"W2",w2))
+			heatframe.append((tstamp,"W3",w3))
+			tstamp=cur_time
+
+	workers=[]
+	times=[]
+	tasks=[]
+	for x in range(3,len(heatframe)):
+		times.append(heatframe[x][0]-base_time)
+		workers.append(heatframe[x][1])
+		tasks.append(heatframe[x][2])
+		
+	heat=pd.DataFrame({"Time":times,"Workers":workers,"Tasks Running":tasks})
+	print(tabulate(heat, headers = 'keys', tablefmt = 'psql')) 	
+	heated=heat.pivot(index="Workers",columns="Time",values="Tasks Running")
+	sns.heatmap(heated, annot=True, fmt="g", cmap='viridis')
+	plt.title("Worker job allocation:(%s)"%algo)
+	plt.show()
 
 	a = date.today()
 	job_completion = []
@@ -112,68 +168,6 @@ def bar_graph(logs):
 	ax.bar(xaxis,yaxis)
 	plt.show()
 
-def heatMap(logs,algo):
-	tstamp=0#getTimeSec(f.readlines()[0][10][18])
-	w1=0
-	w2=0
-	w3=0
-	heatframe=[]
-	base_time_set = False
-	base_time = -1
-	for line in logs:
-		cur_time=getTimeSec(line[10:18])
-		if(not base_time_set):
-			base_time_set = True
-			base_time = cur_time
-		if "starting task" in line:
-			worker=line[-2]
-			if(worker=='1'):
-				w1+=1
-			elif(worker=='2'):
-				w2+=1
-			else:
-				w3+=1
-			if tstamp==0:
-				tstamp=cur_time
-				heatframe.append((cur_time,"W1",w1))
-				heatframe.append((cur_time,"W2",w2))
-				heatframe.append((cur_time,"W3",w3))
-		
-		elif "ending task" in line:
-			worker=line[-2]
-			if(worker=='1'):
-				w1-=1
-			elif(worker=='2'):
-				w2-=1
-			else:
-				w3-=1
-			if tstamp==0:
-				tstamp=cur_time
-				heatframe.append((cur_time,"W1",w1))
-				heatframe.append((cur_time,"W2",w2))
-				heatframe.append((cur_time,"W3",w3))
-		
-		if(cur_time>tstamp):
-			heatframe.append((tstamp,"W1",w1))
-			heatframe.append((tstamp,"W2",w2))
-			heatframe.append((tstamp,"W3",w3))
-			tstamp=cur_time
-
-	workers=[]
-	times=[]
-	tasks=[]
-	# basetime=heatframe[0][0]
-	for x in heatframe:
-		times.append(x[0]-base_time)
-		workers.append(x[1])
-		tasks.append(x[2])
-		
-	heat=pd.DataFrame({"Time":times,"Workers":workers,"Tasks Running":tasks})
-	heated=heat.pivot(index="Workers",columns="Time",values="Tasks Running")
-
-	sns.heatmap(heated, annot=True, fmt="g", cmap='viridis')
-	plt.title("Worker job allocation:(%s)"%algo)
-	plt.show()
 
 ''''task completion time:  
 (end time of task inWorker process) – (arrival time of task at Worker process)
@@ -184,6 +178,5 @@ filepath = sys.argv[1]
 algo = sys.argv[2]
 f = open(filepath)
 logs=f.readlines()
-heatMap(logs,algo)
-bar_graph(logs)
-f.close()            
+plot(logs,algo)
+f.close()
