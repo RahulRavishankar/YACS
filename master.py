@@ -45,7 +45,7 @@ def listen_to_requests():
                     l.append((i['task_id'], i['duration']))
                     lock.acquire()
                     date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    logging.info(date + " " + "job arrival" + " " +
+                    logging.info(date + " " + "task arrival" + " " +
                                  x["job_id"] + " " + i["task_id"])
                     lock.release()
                 p.append(l)
@@ -54,7 +54,7 @@ def listen_to_requests():
                     r.append((i['task_id'], i['duration']))
                     lock.acquire()
                     date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    logging.info(date + " " + "job arrival" +
+                    logging.info(date + " " + "task arrival" +
                                  " " + x["job_id"] + " " + i["task_id"])
                     lock.release()
 
@@ -64,10 +64,7 @@ def listen_to_requests():
                 pq_lock.acquire()
                 jobs_pq.insert(d)
                 pq_lock.release()
-            print("Recieved Request")
-            # pq_lock.acquire()
-            # jobs_pq.display()
-            # pq_lock.release()
+            print("Received Request")       
         except KeyboardInterrupt:
             break
 
@@ -91,7 +88,6 @@ def handle_roundrobin(workers):
                 while(count < len(worker_ids)):
                     time.sleep(0.1)
                     count += 1
-                    # print(worker_id+1)
                     workers_lock[worker_id+1].acquire()
                     freeSlotisAvailable = workers[worker_id+1]["free_slots"]
                     workers_lock[worker_id+1].release()
@@ -146,9 +142,6 @@ def handle_random(workers, worker_ids):
                     job_id = task_id.split("_")[0]
 
                     #####################
-                    # break
-            # print("All workers are busy")
-        # print("No more jobs left")
 
     print("Exitting random")
 
