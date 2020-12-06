@@ -6,7 +6,8 @@ import pandas as pd
 import seaborn as sns
 from operator import itemgetter
 from datetime import datetime,date,time
-from tabulate import tabulate
+#from tabulate import tabulate
+import numpy as np
 
 def getTimeSec(timestamp):
 	timestamp=timestamp[11:19]
@@ -131,33 +132,41 @@ def plot(logs,algo):
 
 	mean_jobs = sum(job_completion)/len(job_completion)
 	median_jobs = median(job_completion)
-	fig = plt.figure()
-	ab = fig.add_axes([0,0,1,1])
-	xax = ['mean', 'median']
-	yax = [mean_jobs,median_jobs]
-	ab.bar(xax,yax)
+	objects = ('mean', 'median')
+	y_pos = np.arange(len(objects))
+	performance = [mean_jobs,median_jobs]
+	plt.bar(y_pos,performance,align='center',alpha=0.5)
+	plt.xticks(y_pos,objects)
+	plt.ylabel('Time')
+	plt.title('Mean and median time of job completion')
 	plt.show()
-	print("Mean: ",mean_jobs)
-	print("Median: ",median_jobs)
-
 	print("Number of tasks started: ",len(starting_task))
 	print("Number of tasks ended: ",len(ending_task))
+	print("Mean of jobs: ",mean_jobs)
+	print("Median of jobs: ",median_jobs)
+
+	
 	#print(starting_task)        
 	for i in starting_task.keys():
 	    RA_1 = datetime.strptime(starting_task[i], '%H:%M:%S').time()
 	    RA_2 = datetime.strptime(ending_task[i], '%H:%M:%S').time()
 	    diff = datetime.combine(a, RA_2) - datetime.combine(a, RA_1)
 	    task_completion_time.append(diff.total_seconds())
-
 	mean_tasks = sum(task_completion_time)/len(task_completion_time)
 	median_tasks = median(task_completion_time)
-	fig = plt.figure()
-	ax = fig.add_axes([0,0,1,1])
-	xaxis = ['mean', 'median']
-	yaxis = [mean_tasks,median_tasks]
-	ax.bar(xaxis,yaxis)
+	print("Mean of tasks: ",mean_tasks)
+	print("Median of tasks: ",median_tasks)
+	objects = ('mean', 'median')
+	y_pos = np.arange(len(objects))
+	performance = [mean_tasks,median_tasks]
+	plt.bar(y_pos,performance,align='center',alpha=0.5)
+	plt.xticks(y_pos,objects)
+	plt.ylabel('Time')
+	plt.title('Mean and median time of task completion')
 	plt.show()
 
+        
+	
 
 ''''task completion time:  
 (end time of task inWorker process) – (arrival time of task at Worker process)
@@ -171,3 +180,5 @@ algo=logs.pop(0)[:-1]
 logs.sort(key=getTimeSec)
 plot(logs,algo)
 f.close() 
+
+
