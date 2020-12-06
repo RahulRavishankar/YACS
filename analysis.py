@@ -138,7 +138,7 @@ def plot(logs,algo):
 	plt.bar(y_pos,performance,align='center',alpha=0.5)
 	plt.xticks(y_pos,objects)
 	plt.ylabel('Time')
-	plt.title('Mean and median time of job completion')
+	plt.title('Mean and median time of job completion: (%s)'%algo)
 	plt.show()
 	print("Number of tasks started: ",len(starting_task))
 	print("Number of tasks ended: ",len(ending_task))
@@ -162,7 +162,7 @@ def plot(logs,algo):
 	plt.bar(y_pos,performance,align='center',alpha=0.5)
 	plt.xticks(y_pos,objects)
 	plt.ylabel('Time')
-	plt.title('Mean and median time of task completion')
+	plt.title('Mean and median time of task completion: (%s)'%algo)
 	plt.show()
 
         
