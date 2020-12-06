@@ -137,10 +137,6 @@ def handle_random(workers, worker_ids):
                     # Send task to worker
                     send_tasks(str(task[0])+","+str(task[1]),
                                workers[worker_id]["port"])
-
-                    task_id = str(task[0])
-                    job_id = task_id.split("_")[0]
-
                     #####################
 
     print("Exitting random")
@@ -176,11 +172,8 @@ def handle_LL(workers):
                     # Send task to worker
                     send_tasks(str(task[0])+","+str(task[1]),
                                workers[max_id]["port"])
-
-                    task_id = str(task[0])
-                    job_id = task_id.split("_")[0]
-
                     #####################
+                    break
 
 
 def listen_to_workers():
