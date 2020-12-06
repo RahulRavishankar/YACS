@@ -42,7 +42,7 @@ def plot(logs,algo):
 	base_time_set = False
 	base_time = -1
 
-	pats = ['job arrival','starting task','ending task']
+	pats = ['task arrival','starting task','ending task']
 	pat = "(" + "|".join(pats) + ")" + "\s+(\w+)"
 	hm = dict()
 	
@@ -61,7 +61,7 @@ def plot(logs,algo):
 			time = line.split()[1]
 			task = line.split()[5]
 			job = line.split()[4]
-			if(m.group(1) == 'job arrival'):
+			if(m.group(1) == 'task arrival'):
 			    if job not in arr:
 			        arr[job] = []
 			        arr[job].append(list(map(int,time.split(":"))))
