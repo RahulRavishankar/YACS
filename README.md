@@ -12,6 +12,7 @@ SNo.  Name.               SRN.              Class/Section
 
 
 Execution instructions: 
+
 To start the workers, open up a terminal for each worker and run
 python3 worker.py <port_number> <worker_id>
 
