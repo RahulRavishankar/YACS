@@ -74,7 +74,7 @@ def handle_roundrobin(workers):
     prev_worker_id = -1
 
     while(1):
-        time.sleep(0.01)
+        time.sleep(0.05)
         pq_lock.acquire()
         task = jobs_pq.getTask()
         pq_lock.release()
@@ -112,7 +112,7 @@ def handle_roundrobin(workers):
 def handle_random(workers, worker_ids):
 
     while(1):
-        time.sleep(0.01)
+        time.sleep(0.05)
         pq_lock.acquire()
         task = jobs_pq.getTask()
         pq_lock.release()
@@ -143,7 +143,7 @@ def handle_random(workers, worker_ids):
 
 def handle_LL(workers):
     while(1):
-        time.sleep(0.01)
+        time.sleep(0.05)
         pq_lock.acquire()
         task = jobs_pq.getTask()
         pq_lock.release()
