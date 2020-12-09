@@ -12,21 +12,21 @@ import datetime
 logging.basicConfig(filename='YACS_logs.log', filemode='w',
                     format='%(message)s', level=logging.INFO)
 
-
-jobs_pq = PriorityQueue()  # format: (prority, job)
+# Priority Queue that contains all the jobs 
+jobs_pq = PriorityQueue()
 pq_lock = threading.Lock()
 workers_lock = {}
 sockets = {}
 lock = threading.Lock()
 
-
+# Function to send tasks to the worker
 def send_tasks(data, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(('localhost', port))
     s.send(data.encode())
     s.close()
 
-
+# Function that runs on a separate thread and listens to requests
 def listen_to_requests():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('localhost', 5000))
@@ -37,6 +37,11 @@ def listen_to_requests():
             host, _ = s.accept()
             with host:
                 data = host.recv(1024)
+                # Structure the jobs to this format: 
+                # [
+                #  {'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]}, 
+                #  {'1': [[('1_M0', 1)], [('1_R0', 2), ('1_R1', 4)]]}
+                # ]
                 x = json.loads(data)
                 d = dict()
                 p = []
@@ -68,9 +73,9 @@ def listen_to_requests():
         except KeyboardInterrupt:
             break
 
-
+# Function to schedule tasks using Round-Robin Algorithm
 def handle_roundrobin(workers):
-    # jobs is structured like: [{'0': [[('0_M0', 2)], [('0_R0', 4), ('0_R1', 1)]]}, {'1': [[('1_M0', 1)], [('1_R0', 2), ('1_R1', 4)]]}]
+    # Initialise prev_worker_id to -1
     prev_worker_id = -1
 
     while(1):
@@ -78,6 +83,8 @@ def handle_roundrobin(workers):
         pq_lock.acquire()
         task = jobs_pq.getTask()
         pq_lock.release()
+        # If the queue is empty or 
+        # if reduce tasks cannot be run because map tasks of a job are still running 
         if(task == None):
             continue
 
@@ -85,12 +92,14 @@ def handle_roundrobin(workers):
         while(not found):
             worker_id = (prev_worker_id + 1) % len(worker_ids)
             count = 0
+            # Iterate from prev_worker_id+1 through pre_worker_id
             while(count < len(worker_ids)):
                 time.sleep(0.1)
                 count += 1
                 workers_lock[worker_id+1].acquire()
                 freeSlotisAvailable = workers[worker_id+1]["free_slots"]
                 workers_lock[worker_id+1].release()
+                # If a free slot is available, assign the task to the worker
                 if(freeSlotisAvailable):
                     prev_worker_id = worker_id
                     workers_lock[worker_id+1].acquire()
@@ -108,7 +117,7 @@ def handle_roundrobin(workers):
                     break
                 worker_id = (worker_id + 1) % len(worker_ids)
 
-
+# Function to schedule tasks using Random Algorithm
 def handle_random(workers, worker_ids):
 
     while(1):
@@ -116,14 +125,18 @@ def handle_random(workers, worker_ids):
         pq_lock.acquire()
         task = jobs_pq.getTask()
         pq_lock.release()
+        # If the queue is empty or 
+        # if reduce tasks cannot be run because map tasks of a job are still running
         if(task == None):
             continue
         worker_found = False
+        # Make a random choices until a worker with free slots is found
         while(not worker_found):
             worker_id = random.choice(worker_ids)
             workers_lock[worker_id].acquire()
             freeSlotisAvailable = workers[worker_id]["free_slots"]
             workers_lock[worker_id].release()
+            # If a free slot is available, assign the task to the worker
             if(freeSlotisAvailable):
                 worker_found = True
                 workers_lock[worker_id].acquire()
@@ -140,26 +153,30 @@ def handle_random(workers, worker_ids):
 
     print("Exitting random")
 
-
+# Function to schedule tasks using Least-Loaded Algorithm
 def handle_LL(workers):
     while(1):
         time.sleep(0.05)
         pq_lock.acquire()
         task = jobs_pq.getTask()
         pq_lock.release()
+        # If the queue is empty or 
+        # if reduce tasks cannot be run because map tasks of a job are still running
         if(task == None):
             continue
         worker_found = False
         max_slots = 0
         max_id = 0
         while(not worker_found):
+            # Iterate through all workers select a worker with the maximum number of free slots
             for worker_id in workers:
                 workers_lock[worker_id].acquire()
                 if(workers[worker_id]["free_slots"] > max_slots):
                     max_slots = workers[worker_id]["free_slots"]
                     max_id = worker_id
                 workers_lock[worker_id].release()
-
+            # If the maximum number of free slots is greater than 0, 
+            # assign the task to the worker
             if(max_slots):
                 worker_found = True
                 workers_lock[max_id].acquire()
@@ -173,7 +190,8 @@ def handle_LL(workers):
                             workers[max_id]["port"])
                 #####################
 
-
+# Function that runs on a separate thread and listens for updates from the worker
+# Worker sends an update upon completion of execution of the task
 def listen_to_workers():
     print("Listening to workers")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -186,21 +204,28 @@ def listen_to_workers():
             with host:
                 msg = host.recv(1024)
                 msg = msg.decode()
+                # Message received from the worker contains:
+                # start time of the task, end time of the task, 
+                # taskId and worker_id that executed the task
                 start_time, end_time, task_id, worker_id = msg.split(',')
                 worker_id = int(worker_id)
                 print("Message %s received from worker %d " %
                       (task_id, worker_id))
                 lock.acquire()
                 job_id = task_id.split("_")[0]
+                # Log the starting and ending time of the task
                 logging.info(start_time + " " + "starting task" +
                              " " + job_id + " " + task_id + " " + str(worker_id))
                 logging.info(end_time + " " + "ending task" + " " +
                              job_id + " " + task_id + " " + str(worker_id))
                 lock.release()
+
+                # Increment the number of free slots in the worker 
                 workers_lock[worker_id].acquire()
                 workers[worker_id]["free_slots"] += 1
                 workers_lock[worker_id].release()
 
+                # Remove the task from the job
                 pq_lock.acquire()
                 jobs_pq.popTask(task_id)
                 pq_lock.release()
@@ -232,16 +257,21 @@ if __name__ == '__main__':
     worker_ids = []
     for worker in data["workers"]:
         print(worker)
+        # Dictionary indexed by the worker_id which contains:
+        # Total number of slots available in a worker, port to which it is connnected and
+        # the number of free slots available
         workers[worker["worker_id"]] = {
             "slots": worker["slots"],
             "port": worker["port"],
             "free_slots": worker["slots"]
         }
         worker_ids.append(worker["worker_id"])
+        # Dictionary indexed by worker_id which contains the lock for each worker
         workers_lock[worker["worker_id"]] = threading.Lock()
 
     print("Connection with Workers successful!!\n")
 
+    # Create and start a thread to listen to requests and listen to workers for updates
     requests_listener = threading.Thread(target=listen_to_requests)
     worker_listener = threading.Thread(target=listen_to_workers)
     requests_listener.start()
