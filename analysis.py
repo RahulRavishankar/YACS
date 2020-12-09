@@ -16,6 +16,7 @@ def getTimeSec(timestamp):
 	seconds=a_timedelta.total_seconds()
 	return seconds  
 
+#function to calculate median of a list
 def median(list):
     list.sort()
     l = len(list)
@@ -28,12 +29,12 @@ def median(list):
         return list[mid]
 
 def plot(logs,algo):
-	arr = dict() #stores first task arrival of a job
-	end = dict()
-	task_completion_time = []
-	job_arrival = dict()
-	starting_task = dict()
-	ending_task = dict()
+	arr = dict() #stores arrival time of all tasks for a particular job_id
+	end = dict() #stores ending time of all tasks for a particular job_id
+	task_completion_time = [] #stores the time taken to complete each task
+	job_arrival = dict() #stores arrival of each task at master
+	starting_task = dict() #stores starting time of each task at worker
+	ending_task = dict() #stores ending time of each task at worker
 	
 	#variables to store for data collection for heatmap
 	tstamp=0
@@ -133,8 +134,8 @@ def plot(logs,algo):
 	job_completion = []
 
 	for i in end.keys():
-	    end[i] = sorted(end[i], key=itemgetter(1,2),reverse=True)
-	    arr[i] = sorted(arr[i], key=itemgetter(1,2))
+	    end[i] = sorted(end[i], key=itemgetter(1,2),reverse=True) #sort to get the ending time for last reducer task
+	    arr[i] = sorted(arr[i], key=itemgetter(1,2)) #sort to get the arrival time for the first task of each job
 	    A_1 = end[i][0]
 	    t1 = str(end[i][0][0]) + ":" + str(end[i][0][1]) + ":" + str(end[i][0][2])
 	    t1_ = datetime.strptime(t1, '%H:%M:%S').time()
@@ -146,6 +147,7 @@ def plot(logs,algo):
 
 	mean_jobs = sum(job_completion)/len(job_completion)
 	median_jobs = median(job_completion)
+	#plot bar graph for mean and median of job completion
 	objects = ('mean', 'median')
 	y_pos = np.arange(len(objects))
 	performance = [mean_jobs,median_jobs]
@@ -170,6 +172,7 @@ def plot(logs,algo):
 	median_tasks = median(task_completion_time)
 	print("Mean of tasks: ",mean_tasks)
 	print("Median of tasks: ",median_tasks)
+	#plot bar graph for mean and median of task completion
 	objects = ('mean', 'median')
 	y_pos = np.arange(len(objects))
 	performance = [mean_tasks,median_tasks]
