@@ -40,7 +40,8 @@ def plot(logs,algo):
 	w1=0
 	w2=0
 	w3=0
-	#values to be plotted for heatmap
+	
+	#values to be plotted for heatmap, stored in a list of tuples, heatframe
 	heatframe=[]
 	#tracking first logged timestamp, to set base time
 	base_time_set = False
