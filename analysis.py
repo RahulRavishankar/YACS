@@ -34,11 +34,15 @@ def plot(logs,algo):
 	job_arrival = dict()
 	starting_task = dict()
 	ending_task = dict()
+	
+	#variables to store for data collection for heatmap
 	tstamp=0
 	w1=0
 	w2=0
 	w3=0
+	#values to be plotted for heatmap
 	heatframe=[]
+	#tracking first logged timestamp, to set base time
 	base_time_set = False
 	base_time = -1
 
@@ -48,14 +52,20 @@ def plot(logs,algo):
 	
 	for line in logs:
 		cur_time=getTimeSec(line)
+		#setting base time of execution
 		if(not base_time_set):
 			base_time_set = True
 			base_time = cur_time
+		#adding an entry to the heatmap dataset, every time there is an increase in time
+		#each entry in the dataset contains the timestamp, worker, 
+		#and number of tasks running on said worker
 		if(cur_time>tstamp):
 			heatframe.append((tstamp,"W1",w1))
 			heatframe.append((tstamp,"W2",w2))
 			heatframe.append((tstamp,"W3",w3))
 			tstamp=cur_time
+			
+		#detect the type of event: task arrival, task starting, or task ending
 		m = re.search(pat,line)
 		if m:
 			time = line.split()[1]
@@ -100,15 +110,18 @@ def plot(logs,algo):
 				else:
 					end[job].append(time.split(":"))
 
-
+	#exctracting the values required for heatmap plotting
 	workers=[]
 	times=[]
 	tasks=[]
 	for x in range(3,len(heatframe)):
+		#subtracting basetime to ensure heatmap's x axis (time) runs from 0 to runtime
 		times.append(heatframe[x][0]-base_time)
 		workers.append(heatframe[x][1])
 		tasks.append(heatframe[x][2])
-		
+	
+	#formatting the dataset to plot the heatmap,
+	#x-axis: time ; y-axis: workers ; color: no. of tasks running on the worker
 	heat=pd.DataFrame({"Time":times,"Workers":workers,"Tasks Running":tasks})
 	heated=heat.pivot(index="Workers",columns="Time",values="Tasks Running")
 	sns.heatmap(heated, annot=True, fmt="g", cmap='viridis',cbar_kws={'label': 'Tasks Running'})
