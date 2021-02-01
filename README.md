@@ -1,25 +1,53 @@
-CS322:BIG DATA
-
-Final Class Project Report
-
-Project: Yet Another Centralized Scheduler                                Date: 01/12/2020
-
-Name, SRN, and Class/Section listed below:
-1.    Gaurika Poplai -    PES1201800374 -   5 I
-2.    Keerthana Mahadev - PES1201800768 -   5 E
-3.    Nikita J. Raj -     PES1201800808 -   5 H
-4.    Rahul KR -          PES1201802064 -   5 J
 
 
+<h1 align="center">Yet Another Centralized Scheduler</h1>
 
-Execution instructions: 
+<div align="center">
 
-To start the workers, open up a terminal for each worker and run
-python3 worker.py <port_number> <worker_id>
 
-To start the master, run
-python3 master.py config.json <algorithm_name>
-(the algorithms arguments to be passed are RANDOM, RR, and LL)
+</div>
 
-To run the plotting file, to analyse the worker performance based on the logs written,
-python3 analysis.py YACS_logs.log
+
+<p align="center"> 
+A visualization tool for path finding algorithms.
+    <br> 
+</p>
+
+## 📝 Table of Contents
+
+- [About](#about)
+- [Built Using](#built_using)
+- [Authors](#authors)
+
+
+## 🧐 About <a name = "about"></a>
+
+> Big data workloads consist of multiple jobs from different applications. These workloads are too large to run on a single machine. Therefore, they are run on clusters of interconnected machines. A scheduling framework is used to manage and allocate the resources of the cluster (CPUs, memory, disk, network bandwidth, etc.) to the different jobs in the workload. 
+
+> Our project YACS is a acentralized scheduling framework. The framework consists of one Master, which runs on a dedicated machine and manages the resources of the rest of the machines in the cluster.
+
+> The other machines in the cluster have one Worker process running on each of them . The Master process makes scheduling decisions while the Worker processes execute the tasks and inform the Master when a task completes its execution.
+
+> The Master listens for job requests and dispatches the tasks in the jobs to machines based on a scheduling algorithm. The scheduling algorithms we have aimplemented are Random,Round Robin and Least-Loaded.
+
+> Each machine is partitioned int equal-sized resource encapsulations  called slots. The Master is informed of the number of machines and the number of slots in each machine with the help of a config file.
+
+> The Worker processes listen for Task Launch messages from the Master. On receiving a Launch message, the Worker adds the task to the execution pool of the machine it runs on. The execution pool consists of all currently running tasks in the machine. 
+
+> Once the remaining_duration of a task reaches 0, the Worker removes the task from its execution pool and reports to the Master that the task has completed its execution. 
+
+> The framework will have to respect the map-reduce dependency in the jobs. Therefore, when a map task completes execution, the Master will have to check if it satisfies the dependencies of any reduce tasks and whether the reduce tasks can now be launched. A job is said to have completed execution only when all the tasks in the job have finished executing.
+
+
+## ⛏️ Built Using <a name = "built_using"></a>
+Python
+> concepts of multithreading,socket programming and logging were implemented
+
+
+## ✍️ Authors <a name = "authors"></a>
+
+- [@gaurikapoplai21](https://github.com/gaurikapoplai21) 
+- [@rahul_5409](https://github.com/RahulRavishankar)
+- [@nikijraj](https://github.com/nikijraj)
+- [@keerthanamahadev](https://github.com/keerthanamahadev) 
+
