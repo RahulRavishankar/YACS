@@ -8,11 +8,6 @@
 </div>
 
 
-<p align="center"> 
-A visualization tool for path finding algorithms.
-    <br> 
-</p>
-
 ## 📝 Table of Contents
 
 - [About](#about)
@@ -36,12 +31,12 @@ A visualization tool for path finding algorithms.
 
 > Once the remaining_duration of a task reaches 0, the Worker removes the task from its execution pool and reports to the Master that the task has completed its execution. 
 
-> The framework will have to respect the map-reduce dependency in the jobs. Therefore, when a map task completes execution, the Master will have to check if it satisfies the dependencies of any reduce tasks and whether the reduce tasks can now be launched. A job is said to have completed execution only when all the tasks in the job have finished executing.
+> The framework respects the map-reduce dependency in the jobs. Therefore, when a map task completes execution, the Master will have to check if it satisfies the dependencies of any reduce tasks and whether the reduce tasks can now be launched. A job is said to have completed execution only when all the tasks in the job have finished executing.
 
 
 ## ⛏️ Built Using <a name = "built_using"></a>
 Python
-> concepts of multithreading,socket programming and logging were implemented
+> concepts of multithreading, socket programming and logging were implemented
 
 
 ## ✍️ Authors <a name = "authors"></a>
